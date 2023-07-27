@@ -1,6 +1,6 @@
 {
   "domain": "volvooncall_cn",
-  "name": "Example Sensor",
+  "name": "Volvo On Call CN",
   "codeowners": [],
   "dependencies": [],
   "documentation": "https://github.com/home-assistant/example-custom-config/tree/master/custom_components/example_sensor/",
