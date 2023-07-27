@@ -1,0 +1,8 @@
+{
+  "name": "Volvo On Call CN",
+  "content_in_root": false,
+  "zip_release": false,
+  "filename": "volvooncall_cn.zip",
+  "render_readme": true,
+  "homeassistant": "2022.7.0"
+}
