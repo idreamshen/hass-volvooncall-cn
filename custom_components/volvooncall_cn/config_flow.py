@@ -1,4 +1,5 @@
 from homeassistant import config_entries
+import voluptuous as vol
 
 DOMAIN = "volvooncall_cn"
 
