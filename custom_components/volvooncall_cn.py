@@ -25,12 +25,24 @@ VOCAPI_HEADERS = {
     "x-originator-type": "app",
 }
 
+DIGITALVOLVO_HEADERS = {
+    "Content-Type": "application/json",
+    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
+    "X-Ca-Version": "1.0",
+    "x-sdk-content-sha256": "UNSIGNED-PAYLOAD",
+    "version": "5.27.0",
+    "Accept": "application/json; charset=utf-8",
+}
+
 TIMEOUT = timedelta(seconds=30)
 
 class VehicleAPI:
-    def __init__(self, session, refresh_token):
+    def __init__(self, session, username, password):
         self._session = session
-        self._refresh_token = refresh_token
+        self._username = username
+        self._password = password
+
+        self._refresh_token = ""
         self._digitalvolvo_access_token = ""
         self._vocapi_access_token = ""
         self._access_token_expire_at = 0
@@ -53,7 +65,8 @@ class VehicleAPI:
                     method,
                     url,
                     headers=final_headers,
-                    timeout=ClientTimeout(total=TIMEOUT.seconds)
+                    timeout=ClientTimeout(total=TIMEOUT.seconds),
+                    **kwargs
             ) as response:
                 response.raise_for_status()
                 res = await response.json(loads=json_loads)
@@ -72,10 +85,14 @@ class VehicleAPI:
             _LOGGER.debug("Request for %s", url)
 
             final_headers = {}
+            for k in DIGITALVOLVO_HEADERS:
+                final_headers[k] = DIGITALVOLVO_HEADERS[k]
+
             for k in headers:
                 final_headers[k] = headers[k]
 
-            final_headers["authorization"] = "Bearer " + self._digitalvolvo_access_token
+            if self._digitalvolvo_access_token:
+                final_headers["authorization"] = "Bearer " + self._digitalvolvo_access_token
 
             _LOGGER.debug("final_headers=%s", final_headers)
 
@@ -83,7 +100,8 @@ class VehicleAPI:
                     method,
                     url,
                     headers=final_headers,
-                    timeout=ClientTimeout(total=TIMEOUT.seconds)
+                    timeout=ClientTimeout(total=TIMEOUT.seconds),
+                    **kwargs
             ) as response:
                 response.raise_for_status()
                 res = await response.json(loads=json_loads)
@@ -101,7 +119,7 @@ class VehicleAPI:
         """Perform a query to the online service."""
         return await self._request_vocapi(METH_GET, url, headers)
 
-    async def vocapi_post(self, url, headers, **data):
+    async def vocapi_post(self, url, headers, data):
         """Perform a query to the online service."""
         return await self._request_vocapi(METH_POST, url, headers, json=data)
 
@@ -109,10 +127,29 @@ class VehicleAPI:
         """Perform a query to the online service."""
         return await self._request_digitalvolvo(METH_GET, url, headers)
 
-    async def digitalvolvo_post(self, url, headers, **data):
+    async def digitalvolvo_post(self, url, headers, data):
         """Perform a query to the online service."""
         return await self._request_digitalvolvo(METH_POST, url, headers, json=data)
 
+    async def login(self):
+        url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/auth"
+        result = await self.digitalvolvo_post(url, {}, {
+            "authType": "password",
+            "password": self._password,
+            "phoneNumber": "0086" + self._username
+        })
+        self._vocapi_access_token = result["data"]["globalAccessToken"]
+        self._digitalvolvo_access_token = result["data"]["accessToken"]
+        now = int(time.time())
+        self._access_token_expire_at = now + int(result["data"]["expiresIn"])
+
+    async def update_access_token(self):
+        url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/refreshToken?refreshToken=" + self._refresh_token
+        result = await self.digitalvolvo_get(url, {})
+        self._vocapi_access_token = result["data"]["globalAccessToken"]
+        self._digitalvolvo_access_token = result["data"]["accessToken"]
+        now = int(time.time())
+        self._access_token_expire_at = now + int(result["data"]["expiresIn"])
 
     async def get_vehicles_vins(self):
         url = "https://apigateway.digitalvolvo.com/app/account/vehicles/api/v1/owner/listBindCar"
@@ -123,13 +160,6 @@ class VehicleAPI:
 
         return vins
 
-    async def update_access_token(self):
-        url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/refreshToken?refreshToken=" + self._refresh_token
-        result = await self.digitalvolvo_get(url, {})
-        self._vocapi_access_token = result["data"]["globalAccessToken"]
-        self._digitalvolvo_access_token = result["data"]["accessToken"]
-        now = int(time.time())
-        self._access_token_expire_at = now + int(result["data"]["expiresIn"])
 
     async def get_vehicle_status(self, vin):
         url = "https://vocapi.cn.prod.vocw.cn/customerapi/rest/vehicles/" + vin + "/status"
@@ -170,17 +200,8 @@ class Vehicle:
         self.engine_running = data["engineRunning"]
         self.odo_meter = data["odometer"]
 
-def obj_parser(obj):
-    """Parse datetime."""
-    for key, val in obj.items():
-        try:
-            obj[key] = datetime.strptime(val, "%Y-%m-%dT%H:%M:%S%z")
-        except (TypeError, ValueError):
-            pass
-    return obj
-
 def json_loads(s):
-    return json.loads(s, object_hook=obj_parser)
+    return json.loads(s)
 
 async def main():
     logging.basicConfig(level=logging.DEBUG)
@@ -189,12 +210,13 @@ async def main():
                     description='',
                     epilog='')
 
-    parser.add_argument('--refresh_token')
+    parser.add_argument('--username')
+    parser.add_argument('--password')
     args = parser.parse_args()
 
     async with ClientSession() as session:
-        vehicle_api = VehicleAPI(session, args.refresh_token)
-        await vehicle_api.update_access_token()
+        vehicle_api = VehicleAPI(session, args.username, args.password)
+        await vehicle_api.login()
         vins = await vehicle_api.get_vehicles_vins()
         for vin in vins:
             vechicle = Vehicle(vin, vehicle_api)

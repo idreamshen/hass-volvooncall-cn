@@ -1,0 +1,10 @@
+{
+  "domain": "volvooncall_cn",
+  "name": "Example Sensor",
+  "codeowners": [],
+  "dependencies": [],
+  "documentation": "https://github.com/home-assistant/example-custom-config/tree/master/custom_components/example_sensor/",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "version": "0.0.1"
+}
