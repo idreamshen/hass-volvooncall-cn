@@ -2,6 +2,7 @@
   "domain": "volvooncall_cn",
   "name": "Volvo On Call CN",
   "codeowners": [],
+  "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/home-assistant/example-custom-config/tree/master/custom_components/example_sensor/",
   "iot_class": "cloud_polling",
