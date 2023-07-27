@@ -14,7 +14,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from . import VehicleAPI, Vehicle
+from .volvooncall_cn import VehicleAPI, Vehicle
 
 DOMAIN = "volvooncall_cn"
 
