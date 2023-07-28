@@ -3,6 +3,7 @@ import voluptuous as vol
 
 DOMAIN = "volvooncall_cn"
 
+
 class VolvoOnCallCnConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Example config flow."""
     # The schema version of the entries that it creates
