@@ -123,6 +123,11 @@ class MyEntity(CoordinatorEntity, SensorEntity):
             manufacturer="Volvo",
         )
 
+    @property
+    def unique_id(self) -> str:
+        """Return a unique ID."""
+        return f"{self.coordinator.data[self.idx].vin}-odo_meter"
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
