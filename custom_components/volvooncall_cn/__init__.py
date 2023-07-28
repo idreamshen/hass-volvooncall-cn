@@ -89,11 +89,7 @@ class MyCoordinator(DataUpdateCoordinator):
                     vechicles.append(vechicle)
 
                 return vechicles
-        except ApiAuthError as err:
-            # Raising ConfigEntryAuthFailed will cancel future updates
-            # and start a config flow with SOURCE_REAUTH (async_step_reauth)
-            raise ConfigEntryAuthFailed from err
-        except ApiError as err:
+        except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}")
 
 
