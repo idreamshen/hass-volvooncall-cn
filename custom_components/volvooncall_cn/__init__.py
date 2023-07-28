@@ -181,7 +181,7 @@ class MyEntity(CoordinatorEntity, SensorEntity):
 
     @property
     def has_entity_name(self):
-        return true
+        return True
 
     @property
     def device_info(self) -> DeviceInfo:
