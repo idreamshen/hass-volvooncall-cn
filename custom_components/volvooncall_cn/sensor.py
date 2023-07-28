@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import MyCoordinator, VolvoEntity
+from . import VolvoCoordinator, VolvoEntity
 
 DOMAIN = "volvooncall_cn"
 
@@ -16,12 +16,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Configure sensors from a config entry created in the integrations UI."""
-    coordinator: MyCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: VolvoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
     for idx, ent in enumerate(coordinator.data):
         entities.append(VolvoSensor(coordinator, idx, "distance_to_empty"))
         entities.append(VolvoSensor(coordinator, idx, "odo_meter"))
+        entities.append(VolvoSensor(coordinator, idx, "fuel_amount"))
 
     async_add_entities(entities)
 

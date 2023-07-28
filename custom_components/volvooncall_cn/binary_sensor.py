@@ -14,7 +14,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from . import MyCoordinator, VolvoEntity
+from . import VolvoCoordinator, VolvoEntity
 from . import metaMap
 
 DOMAIN = "volvooncall_cn"
@@ -25,7 +25,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Configure sensors from a config entry created in the integrations UI."""
-    coordinator: MyCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: VolvoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
     for idx, ent in enumerate(coordinator.data):
@@ -37,6 +37,10 @@ async def async_setup_entry(
         entities.append(VolvoSensor(coordinator, idx, "front_left_door_open"))
         entities.append(VolvoSensor(coordinator, idx, "hood_open"))
         entities.append(VolvoSensor(coordinator, idx, "engine_running"))
+        entities.append(VolvoSensor(coordinator, idx, "front_left_window_open"))
+        entities.append(VolvoSensor(coordinator, idx, "front_right_window_open"))
+        entities.append(VolvoSensor(coordinator, idx, "rear_left_window_open"))
+        entities.append(VolvoSensor(coordinator, idx, "rear_right_window_open"))
 
     async_add_entities(entities)
 

@@ -33,9 +33,9 @@ async def async_setup_entry(hass, entry):
     """Config entry example."""
     session = async_get_clientsession(hass)
 
-    my_api = VehicleAPI(session=session, username=entry.data["username"], password=entry.data["password"])
+    volvo_api = VehicleAPI(session=session, username=entry.data["username"], password=entry.data["password"])
     hass.data.setdefault(DOMAIN, {})
-    coordinator = hass.data[DOMAIN][entry.entry_id] = MyCoordinator(hass, my_api)
+    coordinator = hass.data[DOMAIN][entry.entry_id] = VolvoCoordinator(hass, volvo_api)
 
     # Fetch initial data so we have data when entities subscribe
     #
@@ -50,10 +50,10 @@ async def async_setup_entry(hass, entry):
 
     return True
 
-class MyCoordinator(DataUpdateCoordinator):
+class VolvoCoordinator(DataUpdateCoordinator):
     """My custom coordinator."""
 
-    def __init__(self, hass, my_api):
+    def __init__(self, hass, volvo_api):
         """Initialize my coordinator."""
         super().__init__(
             hass,
@@ -63,7 +63,7 @@ class MyCoordinator(DataUpdateCoordinator):
             # Polling interval. Will only be polled if there are subscribers.
             update_interval=timedelta(seconds=30),
         )
-        self.my_api = my_api
+        self.volvo_api = volvo_api
 
     async def _async_update_data(self):
         """Fetch data from API endpoint.
@@ -78,12 +78,12 @@ class MyCoordinator(DataUpdateCoordinator):
                 # Grab active context variables to limit data required to be fetched from API
                 # Note: using context is not required if there is no need or ability to limit
                 # data retrieved from API.
-                await self.my_api.login()
-                await self.my_api.update_token()
-                vins = await self.my_api.get_vehicles_vins()
+                await self.volvo_api.login()
+                await self.volvo_api.update_token()
+                vins = await self.volvo_api.get_vehicles_vins()
                 vehicles = []
                 for vin in vins:
-                    vehicle = Vehicle(vin, self.my_api)
+                    vehicle = Vehicle(vin, self.volvo_api)
                     await vehicle.update()
                     vehicles.append(vehicle)
 

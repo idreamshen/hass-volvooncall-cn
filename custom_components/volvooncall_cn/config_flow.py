@@ -21,9 +21,9 @@ class VolvoOnCallCnConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(user_input["username"])
 
             session = async_get_clientsession(self.hass)
-            my_api = VehicleAPI(session=session, username=user_input["username"], password=user_input["password"])
+            volvo_api = VehicleAPI(session=session, username=user_input["username"], password=user_input["password"])
             try:
-                await my_api.login()
+                await volvo_api.login()
             except VolvoAPIError as err:
                 errors["base"] = err.message
             except Exception:
