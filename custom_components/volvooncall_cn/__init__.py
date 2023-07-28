@@ -8,7 +8,6 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.entity import DeviceInfo
 
-
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -113,6 +112,16 @@ class MyEntity(CoordinatorEntity, SensorEntity):
     @property
     def name(self):
         return f"{self.coordinator.data[self.idx].vin} odo meter"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return a inique set of attributes for each vehicle."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.coordinator.data[self.idx].vin)},
+            name="name",
+            model="model",
+            manufacturer="Volvo",
+        )
 
     @callback
     def _handle_coordinator_update(self) -> None:
