@@ -17,3 +17,7 @@ HACS -> 集成 -> 右上角三个点 -> 自定义存储库
 - 密码：即“沃尔沃APP”上的登录密码，需要提前设置好登录密码
 
 提交稍等片刻后，即可看到拥有的车辆设备
+
+# 效果预览
+<img src="images/screenshot-20230729-011246.png" alt="" width="50%"/>
+<img src="images/screenshot-20230729-011320.png" alt="" width="50%"/>
