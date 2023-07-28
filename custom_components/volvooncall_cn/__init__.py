@@ -82,6 +82,7 @@ class MyCoordinator(DataUpdateCoordinator):
                 listening_idx = set(self.async_contexts())
                 await self.my_api.login()
                 vins = await self.my_api.get_vehicles_vins()
+                _LOGGER.error("vins=%s", vins)
                 vechicles = []
                 for vin in vins:
                     vechicle = Vehicle(vin, self.my_api)
