@@ -67,7 +67,7 @@ class VolvoSensor(CoordinatorEntity, BinarySensorEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, self.coordinator.data[self.idx].vin)},
             name="name",
-            model="model",
+            model="s60",
             manufacturer="Volvo",
         )
 
