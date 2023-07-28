@@ -165,7 +165,6 @@ class VehicleAPI:
         self._digitalvolvo_access_token = result["data"]["accessToken"]
         now = int(time.time())
         self._access_token_expire_at = now + int(result["data"]["expiresIn"])
-        return APIResponse(True, "", {})
 
     async def update_token(self):
         now = int(time.time())
