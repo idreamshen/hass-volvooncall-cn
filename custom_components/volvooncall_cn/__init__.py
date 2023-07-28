@@ -94,6 +94,7 @@ class MyCoordinator(DataUpdateCoordinator):
 metaMap = {
     "car_locked": {
         "name": "Car Locked",
+        "device_class": "lock",
     },
     "distance_to_empty": {
         "name": "Distance To Empty"
