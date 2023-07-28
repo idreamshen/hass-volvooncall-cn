@@ -1,8 +1,12 @@
+import logging
+
 from homeassistant import config_entries
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import voluptuous as vol
 from .volvooncall_cn import VehicleAPI, Vehicle, VolvoAPIError
 DOMAIN = "volvooncall_cn"
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class VolvoOnCallCnConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
