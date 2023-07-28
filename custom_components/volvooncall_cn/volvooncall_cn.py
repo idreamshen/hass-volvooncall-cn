@@ -245,10 +245,10 @@ class Vehicle:
     async def update(self):
         if not self.series_name:
             vehicles = await self._api.get_vehicles()
-            for vehicle in vechicles:
-                if vechicle["vinCode"] == self.vin:
-                    self.series_name = vechicle["seriesName"]
-                    self.model_name = vechicle["modelName"]
+            for vehicle in vehicles:
+                if vehicle["vinCode"] == self.vin:
+                    self.series_name = vehicle["seriesName"]
+                    self.model_name = vehicle["modelName"]
 
         data = await self._api.get_vehicle_status(self.vin)
         self.car_locked = data["carLocked"]
@@ -281,9 +281,9 @@ async def main():
         await vehicle_api.login()
         vins = await vehicle_api.get_vehicles_vins()
         for vin in vins:
-            vechicle = Vehicle(vin, vehicle_api)
-            await vechicle.update()
-            _LOGGER.debug(vechicle.__dict__)
+            vehicle = Vehicle(vin, vehicle_api)
+            await vehicle.update()
+            _LOGGER.debug(vehicle.__dict__)
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()

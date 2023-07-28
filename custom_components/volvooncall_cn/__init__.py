@@ -81,13 +81,13 @@ class MyCoordinator(DataUpdateCoordinator):
                 await self.my_api.login()
                 await self.my_api.update_token()
                 vins = await self.my_api.get_vehicles_vins()
-                vechicles = []
+                vehicles = []
                 for vin in vins:
-                    vechicle = Vehicle(vin, self.my_api)
-                    await vechicle.update()
-                    vechicles.append(vechicle)
+                    vehicle = Vehicle(vin, self.my_api)
+                    await vehicle.update()
+                    vehicles.append(vehicle)
 
-                return vechicles
+                return vehicles
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}")
 
