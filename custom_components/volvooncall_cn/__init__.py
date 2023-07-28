@@ -78,10 +78,9 @@ class MyCoordinator(DataUpdateCoordinator):
                 # Grab active context variables to limit data required to be fetched from API
                 # Note: using context is not required if there is no need or ability to limit
                 # data retrieved from API.
-                listening_idx = set(self.async_contexts())
                 await self.my_api.login()
+                await self.my_api.update_token()
                 vins = await self.my_api.get_vehicles_vins()
-                _LOGGER.error("vins=%s", vins)
                 vechicles = []
                 for vin in vins:
                     vechicle = Vehicle(vin, self.my_api)

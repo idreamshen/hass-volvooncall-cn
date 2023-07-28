@@ -132,6 +132,9 @@ class VehicleAPI:
         return await self._request_digitalvolvo(METH_POST, url, headers, json=data)
 
     async def login(self):
+        if self._digitalvolvo_access_token:
+            return
+
         url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/auth"
         result = await self.digitalvolvo_post(url, {}, {
             "authType": "password",
@@ -143,12 +146,16 @@ class VehicleAPI:
         now = int(time.time())
         self._access_token_expire_at = now + int(result["data"]["expiresIn"])
 
-    async def update_access_token(self):
+    async def update_token(self):
+        now = int(time.time())
+
+        if (now - self._access_token_expire_at) < 60*10:
+            return
+
         url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/refreshToken?refreshToken=" + self._refresh_token
         result = await self.digitalvolvo_get(url, {})
         self._vocapi_access_token = result["data"]["globalAccessToken"]
         self._digitalvolvo_access_token = result["data"]["accessToken"]
-        now = int(time.time())
         self._access_token_expire_at = now + int(result["data"]["expiresIn"])
 
     async def get_vehicles_vins(self):
