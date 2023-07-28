@@ -14,7 +14,7 @@ class VolvoOnCallCnConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             await self.async_set_unique_id(user_input["username"])
             return self.async_create_entry(
-                title=user_input[username], data=user_input
+                title=user_input["username"], data=user_input
             )
 
         return self.async_show_form(
