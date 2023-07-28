@@ -199,9 +199,9 @@ class VolvoEntity(CoordinatorEntity):
     def icon(self):
         return metaMap[self.metaMapKey]["icon"]
 
-    @property
-    def device_class(self):
-        return metaMap[self.metaMapKey]["device_class"]
+    #@property
+    #def device_class(self):
+    #    return metaMap[self.metaMapKey]["device_class"]
 
     @property
     def device_info(self) -> DeviceInfo:
