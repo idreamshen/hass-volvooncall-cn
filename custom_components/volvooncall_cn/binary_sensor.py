@@ -14,7 +14,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from . import MyCoordinator
+from . import MyCoordinator, VolvoEntity
 from . import metaMap
 
 DOMAIN = "volvooncall_cn"
@@ -40,7 +40,7 @@ async def async_setup_entry(
 
     async_add_entities(entities)
 
-class VolvoSensor(CoordinatorEntity, BinarySensorEntity):
+class VolvoSensor(VolvoEntity, BinarySensorEntity):
     """An entity using CoordinatorEntity.
 
     The CoordinatorEntity class provides:
@@ -52,40 +52,7 @@ class VolvoSensor(CoordinatorEntity, BinarySensorEntity):
 
     def __init__(self, coordinator, idx, metaMapKey):
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, context=idx)
-        self.idx = idx
-        self.metaMapKey = metaMapKey
-
-    @property
-    def name(self):
-        return f"{self.coordinator.data[self.idx].vin} {metaMap[self.metaMapKey]['name']}"
-
-    @property
-    def translation_key(self):
-        return self.metaMapKey
-
-    @property
-    def has_entity_name(self):
-        return True
-
-    @property
-    def device_class(self):
-        return metaMap[self.metaMapKey]['device_class']
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return a inique set of attributes for each vehicle."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self.coordinator.data[self.idx].vin)},
-            name=self.coordinator.data[self.idx].series_name,
-            model=self.coordinator.data[self.idx].model_name,
-            manufacturer="Volvo",
-        )
-
-    @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
-        return f"{self.coordinator.data[self.idx].vin}-{self.metaMapKey}"
+        super().__init__(coordinator, idx, metaMapKey)
 
     @property
     def is_on(self) -> bool | None:

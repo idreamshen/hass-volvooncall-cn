@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import MyCoordinator, MyEntity
+from . import MyCoordinator, VolvoEntity
 
 DOMAIN = "volvooncall_cn"
 
@@ -20,7 +20,28 @@ async def async_setup_entry(
 
     entities = []
     for idx, ent in enumerate(coordinator.data):
-        entities.append(MyEntity(coordinator, idx, "distance_to_empty"))
-        entities.append(MyEntity(coordinator, idx, "odo_meter"))
+        entities.append(VolvoSensor(coordinator, idx, "distance_to_empty"))
+        entities.append(VolvoSensor(coordinator, idx, "odo_meter"))
 
     async_add_entities(entities)
+
+class VolvoSensor(VolvoEntity):
+    """An entity using CoordinatorEntity.
+
+    The CoordinatorEntity class provides:
+      should_poll
+      async_update
+      async_added_to_hass
+      available
+    """
+
+    def __init__(self, coordinator, idx, metaMapKey):
+        """Pass coordinator to CoordinatorEntity."""
+        super().__init__(coordinator, idx, metaMapKey)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._attr_native_value = self.coordinator.data[self.idx].toMap()[self.metaMapKey]
+        self._attr_native_unit_of_measurement = metaMap[self.metaMapKey]["unit"]
+        self.async_write_ha_state()

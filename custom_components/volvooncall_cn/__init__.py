@@ -93,78 +93,98 @@ class MyCoordinator(DataUpdateCoordinator):
 
 metaMap = {
     "car_lock_open": {
-        "name": "Car Lock",
+        "name": "Lock",
         "device_class": "lock",
+        "icon": "",
+        "unit": "",
     },
     "distance_to_empty": {
-        "name": "Distance To Empty",
+        "name": "Distance to empty",
         "device_class": "",
+        "icon": "mdi:ruler",
+        "unit": "km",
     },
     "tail_gate_open": {
-        "name": "Tail Gate Open",
-        "device_class": "",
+        "name": "Tail gate",
+        "device_class": "door",
+        "icon": "",
+        "unit": "",
     },
     "rear_right_door_open": {
-        "name": "Rear Right Door Open",
-        "device_class": "",
+        "name": "Rear right door",
+        "device_class": "door",
+        "icon": "",
+        "unit": "",
     },
     "rear_left_door_open": {
-        "name": "Rear Left Door Open",
-        "device_class": "",
+        "name": "Rear left door",
+        "device_class": "door",
+        "icon": "",
+        "unit": "",
     },
     "front_right_door_open": {
-        "name": "Front Right Door Open",
-        "device_class": "",
+        "name": "Front right door",
+        "device_class": "door",
+        "icon": "",
+        "unit": "",
     },
     "front_left_door_open": {
-        "name": "Front Left Door Open",
-        "device_class": "",
+        "name": "Front left door",
+        "device_class": "door",
+        "icon": "",
+        "unit": "",
     },
     "hood_open": {
-        "name": "Hood Open",
-        "device_class": "",
+        "name": "Hood",
+        "device_class": "door",
+        "icon": "",
+        "unit": "",
     },
     "engine_running": {
-        "name": "Engine Running",
-        "device_class": "",
+        "name": "Engine",
+        "device_class": "power",
+        "icon": "",
+        "unit": "",
     },
     "odo_meter": {
-        "name": "Odo Meter",
-        "device_class": "",
+        "name": "Odometer",
+        "device_class": "mdi:speedometer",
+        "icon": "",
+        "unit": "km",
     },
     "front_left_window_open": {
-        "name": "Front Left Window Open",
-        "device_class": "",
+        "name": "Front left window open",
+        "device_class": "window",
+        "icon": "",
+        "unit": "",
     },
     "front_right_window_open": {
-        "name": "Front Right Window Open",
-        "device_class": "",
+        "name": "Front right window open",
+        "device_class": "window",
+        "icon": "",
+        "unit": "",
     },
     "rear_left_window_open": {
-        "name": "Rear Left Window Open",
-        "device_class": "",
+        "name": "Rear left window",
+        "device_class": "window",
+        "icon": "",
+        "unit": "",
     },
     "rear_right_window_open": {
-        "name": "Rear Right Window Open",
-        "device_class": "",
+        "name": "Rear right window",
+        "device_class": "window",
+        "icon": "",
+        "unit": "",
     },
     "fuel_amount": {
-        "name": "Fuel Amount",
+        "name": "Fuel amount",
         "device_class": "",
-        "friendly_name": ""
+        "icon": "mdi:gas-station",
+        "unit": "L",
     }
 }
 
-class MyEntity(CoordinatorEntity, SensorEntity):
-    """An entity using CoordinatorEntity.
-
-    The CoordinatorEntity class provides:
-      should_poll
-      async_update
-      async_added_to_hass
-      available
-    """
-
+class VolvoEntity(CoordinatorEntity):
     def __init__(self, coordinator, idx, metaMapKey):
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(coordinator, context=idx)
@@ -176,12 +196,8 @@ class MyEntity(CoordinatorEntity, SensorEntity):
         return f"{self.coordinator.data[self.idx].vin} {metaMap[self.metaMapKey]['name']}"
 
     @property
-    def translation_key(self):
-        return self.metaMapKey
-
-    @property
-    def has_entity_name(self):
-        return True
+    def icon(self):
+        return metaMap[self.metaMapKey]["icon"]
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -197,9 +213,3 @@ class MyEntity(CoordinatorEntity, SensorEntity):
     def unique_id(self) -> str:
         """Return a unique ID."""
         return f"{self.coordinator.data[self.idx].vin}-{self.metaMapKey}"
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self._attr_native_value = self.coordinator.data[self.idx].toMap()[self.metaMapKey]
-        self.async_write_ha_state()
