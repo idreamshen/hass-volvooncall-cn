@@ -21,7 +21,7 @@ DOMAIN = "volvooncall_cn"
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(hass, entry):
     """Config entry example."""
     session = async_get_clientsession(hass)
 
