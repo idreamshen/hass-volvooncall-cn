@@ -131,6 +131,27 @@ metaMap = {
     "odo_meter": {
         "name": "Odo Meter",
         "device_class": "",
+    },
+    "front_left_window_open": {
+        "name": "Front Left Window Open",
+        "device_class": "",
+    },
+    "front_right_window_open": {
+        "name": "Front Right Window Open",
+        "device_class": "",
+    },
+    "rear_left_window_open": {
+        "name": "Rear Left Window Open",
+        "device_class": "",
+    },
+    "rear_right_window_open": {
+        "name": "Rear Right Window Open",
+        "device_class": "",
+    },
+    "fuel_amount": {
+        "name": "Fuel Amount",
+        "device_class": "",
+        "friendly_name": ""
     }
 }
 
@@ -153,6 +174,10 @@ class MyEntity(CoordinatorEntity, SensorEntity):
     @property
     def name(self):
         return f"{self.coordinator.data[self.idx].vin} {metaMap[self.metaMapKey]['name']}"
+
+    @property
+    def translation_key(self):
+        return self.metaMapKey
 
     @property
     def device_info(self) -> DeviceInfo:

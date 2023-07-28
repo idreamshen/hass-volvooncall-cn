@@ -1,0 +1,15 @@
+{
+  "entity": {
+    "sensor": {
+      "distance_to_empty": {
+        "name": "续航里程"
+      },
+      "odo_meter": {
+        "name": "里程表"
+      },
+      "fuel_amount": {
+        "name": "剩余油量"
+      },
+    }
+  }
+}

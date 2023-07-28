@@ -62,6 +62,10 @@ class VolvoSensor(CoordinatorEntity, BinarySensorEntity):
         return f"{self.coordinator.data[self.idx].vin} {metaMap[self.metaMapKey]['name']}"
 
     @property
+    def translation_key(self):
+        return self.metaMapKey
+
+    @property
     def device_class(self):
         return metaMap[self.metaMapKey]['device_class']
 

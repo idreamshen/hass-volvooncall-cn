@@ -222,6 +222,11 @@ class Vehicle:
         self.hood_open = False
         self.engine_running = False
         self.odo_meter = 0
+        self.front_left_window_open = False
+        self.front_right_window_open = False
+        self.rear_left_window_open = False
+        self.rear_right_window_open = False
+        self.fuel_amount = 0
 
     def toMap(self):
         return {
@@ -239,7 +244,12 @@ class Vehicle:
             "front_left_door_open": self.front_left_door_open,
             "hood_open": self.hood_open,
             "engine_running": self.engine_running,
-            "odo_meter": int(self.odo_meter / 1000),
+            "odo_meter": self.odo_meter,
+            "front_left_window_open": self.front_left_window_open,
+            "front_right_window_open": self.front_right_window_open,
+            "rear_left_window_open": self.rear_left_window_open,
+            "rear_right_window_open": self.rear_right_window_open,
+            "fuel_amount": self.fuel_amount,
         }
 
     async def update(self):
@@ -260,7 +270,12 @@ class Vehicle:
         self.front_left_door_open = data["doors"]["frontLeftDoorOpen"]
         self.hood_open = data["doors"]["hoodOpen"]
         self.engine_running = data["engineRunning"]
-        self.odo_meter = data["odometer"]
+        self.odo_meter = int(data["odometer"] / 1000)
+        self.front_left_window_open = data["windows"]["frontLeftWindowOpen"]
+        self.front_right_window_open = data["windows"]["frontRightWindowOpen"]
+        self.rear_left_window_open = data["windows"]["rearLeftWindowOpen"]
+        self.rear_right_window_open = data["windows"]["rearRightWindowOpen"]
+        self.fuel_amount = data["fuelAmount"]
 
 def json_loads(s):
     return json.loads(s)
