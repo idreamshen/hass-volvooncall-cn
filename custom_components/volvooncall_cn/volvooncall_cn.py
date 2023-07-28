@@ -132,7 +132,9 @@ class VehicleAPI:
         return await self._request_digitalvolvo(METH_POST, url, headers, json=data)
 
     async def login(self):
-        if self._digitalvolvo_access_token:
+        now = int(time.time())
+
+        if (now - self._access_token_expire_at) < 60*10:
             return
 
         url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/auth"
@@ -141,6 +143,13 @@ class VehicleAPI:
             "password": self._password,
             "phoneNumber": "0086" + self._username
         })
+
+        if not result["data"]["globalAccessToken"]:
+            return
+
+        if not result["data"]["accessToken"]:
+            return
+
         self._vocapi_access_token = result["data"]["globalAccessToken"]
         self._digitalvolvo_access_token = result["data"]["accessToken"]
         now = int(time.time())
