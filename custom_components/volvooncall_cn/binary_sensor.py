@@ -30,7 +30,7 @@ async def async_setup_entry(
 
     entities = []
     for idx, ent in enumerate(coordinator.data):
-        entities.append(VolvoSensor(coordinator, idx, "car_locked"))
+        entities.append(VolvoSensor(coordinator, idx, "car_lock_open"))
         entities.append(VolvoSensor(coordinator, idx, "tail_gate_open"))
         entities.append(VolvoSensor(coordinator, idx, "rear_right_door_open"))
         entities.append(VolvoSensor(coordinator, idx, "rear_left_door_open"))

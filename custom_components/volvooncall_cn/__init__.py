@@ -92,8 +92,8 @@ class MyCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(f"Error communicating with API: {err}")
 
 metaMap = {
-    "car_locked": {
-        "name": "Car Locked",
+    "car_lock_open": {
+        "name": "Car Lock",
         "device_class": "lock",
     },
     "distance_to_empty": {
