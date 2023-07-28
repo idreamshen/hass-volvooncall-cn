@@ -11,7 +11,7 @@ class VolvoOnCallCnConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(self, user_input):
-        if info is not None:
+        if user_input is not None:
             await self.async_set_unique_id(user_input["username"])
             return self.async_create_entry(
                 title=user_input[username], data=user_input
