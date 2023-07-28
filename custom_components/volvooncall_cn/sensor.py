@@ -1,3 +1,4 @@
+import logging
 from __future__ import annotations
 
 from homeassistant.components.sensor import SensorEntity
@@ -9,6 +10,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from . import VolvoCoordinator, VolvoEntity, metaMap
 
 DOMAIN = "volvooncall_cn"
+
+_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -26,7 +29,7 @@ async def async_setup_entry(
 
     async_add_entities(entities)
 
-class VolvoSensor(VolvoEntity):
+class VolvoSensor(VolvoEntity, SensorEntity):
     """An entity using CoordinatorEntity.
 
     The CoordinatorEntity class provides:
