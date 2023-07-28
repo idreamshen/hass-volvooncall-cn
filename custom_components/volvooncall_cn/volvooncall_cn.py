@@ -205,7 +205,7 @@ class Vehicle:
     def toMap(self):
         return {
             "car_locked": self.car_locked,
-            "car_lock_open": !self.car_locked,
+            "car_lock_open": not self.car_locked,
             "car_locked_updated_at": self.car_locked_updated_at,
             "distance_to_empty": self.distance_to_empty,
             "distance_to_empty_updated_at": self.distance_to_empty_updated_at,
