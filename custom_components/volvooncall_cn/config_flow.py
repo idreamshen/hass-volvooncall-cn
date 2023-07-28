@@ -10,7 +10,7 @@ class VolvoOnCallCnConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     # Home Assistant will call your migrate method if the version changes
     VERSION = 1
 
-    async def async_step_user(self, info):
+    async def async_step_user(self, user_input):
         if info is not None:
             await self.async_set_unique_id(user_input["username"])
             return self.async_create_entry(
