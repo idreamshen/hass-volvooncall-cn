@@ -18,6 +18,10 @@ from .volvooncall_cn import VehicleAPI, Vehicle
 
 DOMAIN = "volvooncall_cn"
 
+PLATFORMS = {
+    "sensor": "sensor",
+}
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -39,6 +43,9 @@ async def async_setup_entry(hass, entry):
     # coordinator.async_refresh() instead
     #
     await coordinator.async_config_entry_first_refresh()
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    return True
 
 class MyCoordinator(DataUpdateCoordinator):
     """My custom coordinator."""
