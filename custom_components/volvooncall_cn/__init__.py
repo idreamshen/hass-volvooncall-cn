@@ -148,8 +148,8 @@ metaMap = {
     },
     "odo_meter": {
         "name": "Odometer",
-        "device_class": "mdi:speedometer",
-        "icon": "",
+        "device_class": "",
+        "icon": "mdi:speedometer",
         "unit": "km",
     },
     "front_left_window_open": {

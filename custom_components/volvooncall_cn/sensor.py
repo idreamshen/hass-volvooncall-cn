@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import VolvoCoordinator, VolvoEntity
+from . import VolvoCoordinator, VolvoEntity, metaMap
 
 DOMAIN = "volvooncall_cn"
 
