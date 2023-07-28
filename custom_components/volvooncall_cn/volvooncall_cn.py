@@ -46,6 +46,7 @@ class VehicleAPI:
         self._username = username
         self._password = password
 
+        self._refresh_token = ""
         self._digitalvolvo_access_token = ""
         self._vocapi_access_token = ""
         self._access_token_expire_at = 0
@@ -171,17 +172,25 @@ class VehicleAPI:
         if (now - self._access_token_expire_at) < 60*10:
             return
 
-        url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/refreshToken?refreshToken=" + self._digitalvolvo_access_token
+        url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/refreshToken?refreshToken=" + self._refresh_token
         result = await self.digitalvolvo_get(url, {})
+        self._refresh_token = result["data"]["refresh_token"]
         self._vocapi_access_token = result["data"]["globalAccessToken"]
         self._digitalvolvo_access_token = result["data"]["accessToken"]
         self._access_token_expire_at = now + int(result["data"]["expiresIn"])
 
-    async def get_vehicles_vins(self):
+    async def get_vehicles(self):
         url = "https://apigateway.digitalvolvo.com/app/account/vehicles/api/v1/owner/listBindCar"
         result = await self.digitalvolvo_get(url, {})
+        if result['success']:
+            return result['data']
+
+        return []
+
+    async def get_vehicles_vins(self):
+        data = await self.get_vehicles()
         vins = []
-        for k in result["data"]:
+        for k in data:
             vins.append(k["vinCode"])
 
         return vins
@@ -199,6 +208,8 @@ class Vehicle:
         self.vin = vin
         self._api = api
 
+        self.series_name = ""
+        self.model_name = ""
         self.car_locked = False
         self.car_locked_updated_at = 0
         self.distance_to_empty = 0 # 续航公里
@@ -214,6 +225,8 @@ class Vehicle:
 
     def toMap(self):
         return {
+            "series_name": self.series_name,
+            "model_name": self.model_name,
             "car_locked": self.car_locked,
             "car_lock_open": not self.car_locked,
             "car_locked_updated_at": self.car_locked_updated_at,
@@ -226,10 +239,17 @@ class Vehicle:
             "front_left_door_open": self.front_left_door_open,
             "hood_open": self.hood_open,
             "engine_running": self.engine_running,
-            "odo_meter": self.odo_meter,
+            "odo_meter": int(self.odo_meter / 1000),
         }
 
     async def update(self):
+        if not self.series_name:
+            vehicles = await self._api.get_vehicles()
+            for vehicle in vechicles:
+                if vechicle["vinCode"] == self.vin:
+                    self.series_name = vechicle["seriesName"]
+                    self.model_name = vechicle["modelName"]
+
         data = await self._api.get_vehicle_status(self.vin)
         self.car_locked = data["carLocked"]
         self.distance_to_empty = data["distanceToEmpty"]
