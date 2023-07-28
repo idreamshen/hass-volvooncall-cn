@@ -117,5 +117,5 @@ class MyEntity(CoordinatorEntity, SensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._attr_is_on = self.coordinator.data[self.idx].odo_meter
+        self._attr_native_value = self.coordinator.data[self.idx].odo_meter
         self.async_write_ha_state()
