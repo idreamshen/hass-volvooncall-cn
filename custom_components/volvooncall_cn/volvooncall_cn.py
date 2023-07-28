@@ -167,7 +167,6 @@ class VehicleAPI:
 
         return vins
 
-
     async def get_vehicle_status(self, vin):
         url = "https://vocapi.cn.prod.vocw.cn/customerapi/rest/vehicles/" + vin + "/status"
         return await self.vocapi_get(url, {
@@ -193,6 +192,22 @@ class Vehicle:
         self.hood_open = False
         self.engine_running = False
         self.odo_meter = 0
+
+    def toMap(self):
+        return {
+            "car_locked": self.car_locked,
+            "car_locked_updated_at": self.car_locked_updated_at,
+            "distance_to_empty": self.distance_to_empty,
+            "distance_to_empty_updated_at": self.distance_to_empty_updated_at,
+            "tail_gate_open": self.tail_gate_open,
+            "rear_right_door_open": self.rear_right_door_open,
+            "rear_left_door_open": self.rear_left_door_open,
+            "front_right_door_open": self.front_right_door_open,
+            "front_left_door_open": self.front_left_door_open,
+            "hood_open": self.hood_open,
+            "engine_running": self.engine_running,
+            "odo_meter": self.odo_meter,
+        }
 
     async def update(self):
         data = await self._api.get_vehicle_status(self.vin)

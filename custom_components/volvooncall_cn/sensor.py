@@ -17,6 +17,10 @@ async def async_setup_entry(
 ) -> None:
     """Configure sensors from a config entry created in the integrations UI."""
     coordinator: MyCoordinator = hass.data[DOMAIN][config_entry.entry_id]
-    async_add_entities(
-        MyEntity(coordinator, idx) for idx, ent in enumerate(coordinator.data)
-    )
+
+    entities = []
+    for idx, ent in enumerate(coordinator.data):
+        entities.append(MyEntity(coordinator, idx, "distance_to_empty"))
+        entities.append(MyEntity(coordinator, idx, "odo_meter"))
+
+    async_add_entities(entities)

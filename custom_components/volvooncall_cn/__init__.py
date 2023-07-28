@@ -23,6 +23,7 @@ DOMAIN = "volvooncall_cn"
 
 PLATFORMS = {
     "sensor": "sensor",
+    "binary_sensor": "binary_sensor",
 }
 
 _LOGGER = logging.getLogger(__name__)
@@ -90,6 +91,38 @@ class MyCoordinator(DataUpdateCoordinator):
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}")
 
+metaMap = {
+    "car_locked": {
+        "name": "Car Locked",
+    },
+    "distance_to_empty": {
+        "name": "Distance To Empty"
+    },
+    "tail_gate_open": {
+        "name": "Tail Gate Open"
+    },
+    "rear_right_door_open": {
+        "name": "Rear Right Door Open"
+    },
+    "rear_left_door_open": {
+        "name": "Rear Left Door Open"
+    },
+    "front_right_door_open": {
+        "name": "Front Right Door Open"
+    },
+    "front_left_door_open": {
+        "name": "Front Left Door Open"
+    },
+    "hood_open": {
+        "name": "Hood Open"
+    },
+    "engine_running": {
+        "name": "Engine Running"
+    },
+    "odo_meter": {
+        "name": "Odo Meter"
+    }
+}
 
 class MyEntity(CoordinatorEntity, SensorEntity):
     """An entity using CoordinatorEntity.
@@ -99,17 +132,17 @@ class MyEntity(CoordinatorEntity, SensorEntity):
       async_update
       async_added_to_hass
       available
-
     """
 
-    def __init__(self, coordinator, idx):
+    def __init__(self, coordinator, idx, metaMapKey):
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(coordinator, context=idx)
         self.idx = idx
+        self.metaMapKey = metaMapKey
 
     @property
     def name(self):
-        return f"{self.coordinator.data[self.idx].vin} odo meter"
+        return f"{self.coordinator.data[self.idx].vin} {metaMap[self.metaMapkey]['name']}"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -124,10 +157,10 @@ class MyEntity(CoordinatorEntity, SensorEntity):
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
-        return f"{self.coordinator.data[self.idx].vin}-odo_meter"
+        return f"{self.coordinator.data[self.idx].vin}-{self.metaMapkey}"
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._attr_native_value = self.coordinator.data[self.idx].odo_meter
+        self._attr_native_value = self.coordinator.data[self.idx].toMap()[self.metaMapKey]
         self.async_write_ha_state()
