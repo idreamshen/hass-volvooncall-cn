@@ -142,7 +142,7 @@ class MyEntity(CoordinatorEntity, SensorEntity):
 
     @property
     def name(self):
-        return f"{self.coordinator.data[self.idx].vin} {metaMap[self.metaMapkey]['name']}"
+        return f"{self.coordinator.data[self.idx].vin} {metaMap[self.metaMapKey]['name']}"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -157,7 +157,7 @@ class MyEntity(CoordinatorEntity, SensorEntity):
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
-        return f"{self.coordinator.data[self.idx].vin}-{self.metaMapkey}"
+        return f"{self.coordinator.data[self.idx].vin}-{self.metaMapKey}"
 
     @callback
     def _handle_coordinator_update(self) -> None:
