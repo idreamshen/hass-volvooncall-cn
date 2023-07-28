@@ -180,6 +180,10 @@ class MyEntity(CoordinatorEntity, SensorEntity):
         return self.metaMapKey
 
     @property
+    def has_entity_name(self):
+        return true
+
+    @property
     def device_info(self) -> DeviceInfo:
         """Return a inique set of attributes for each vehicle."""
         return DeviceInfo(

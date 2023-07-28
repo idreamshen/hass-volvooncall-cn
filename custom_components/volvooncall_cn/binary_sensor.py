@@ -66,6 +66,10 @@ class VolvoSensor(CoordinatorEntity, BinarySensorEntity):
         return self.metaMapKey
 
     @property
+    def has_entity_name(self):
+        return true
+
+    @property
     def device_class(self):
         return metaMap[self.metaMapKey]['device_class']
 
