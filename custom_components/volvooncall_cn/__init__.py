@@ -1,5 +1,3 @@
-"""Example integration using DataUpdateCoordinator."""
-
 from datetime import timedelta
 import logging
 
