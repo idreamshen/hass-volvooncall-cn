@@ -36,7 +36,7 @@ async def async_setup_entry(hass, entry):
     my_api = VehicleAPI(session=session, username=entry.data["username"], password=entry.data["password"])
     _LOGGER.error("username=%s, password=%s", entry.data["username"], entry.data["password"])
     hass.data.setdefault(DOMAIN, {})
-    corrdinator = hass.data[DOMAIN][entry.entry_id] = MyCoordinator(hass, my_api)
+    coordinator = hass.data[DOMAIN][entry.entry_id] = MyCoordinator(hass, my_api)
 
     # Fetch initial data so we have data when entities subscribe
     #
