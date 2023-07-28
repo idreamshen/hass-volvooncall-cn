@@ -46,7 +46,6 @@ class VehicleAPI:
         self._username = username
         self._password = password
 
-        self._refresh_token = ""
         self._digitalvolvo_access_token = ""
         self._vocapi_access_token = ""
         self._access_token_expire_at = 0
@@ -172,7 +171,7 @@ class VehicleAPI:
         if (now - self._access_token_expire_at) < 60*10:
             return
 
-        url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/refreshToken?refreshToken=" + self._refresh_token
+        url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/refreshToken?refreshToken=" + self._digitalvolvo_access_token
         result = await self.digitalvolvo_get(url, {})
         self._vocapi_access_token = result["data"]["globalAccessToken"]
         self._digitalvolvo_access_token = result["data"]["accessToken"]
