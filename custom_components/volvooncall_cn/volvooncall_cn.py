@@ -36,6 +36,10 @@ DIGITALVOLVO_HEADERS = {
 
 TIMEOUT = timedelta(seconds=30)
 
+class VolvoAPIError(Exception):
+    def __init__(self, message):
+        self.message = message
+
 class VehicleAPI:
     def __init__(self, session, username, password):
         self._session = session
@@ -106,6 +110,10 @@ class VehicleAPI:
                 response.raise_for_status()
                 res = await response.json(loads=json_loads)
                 _LOGGER.debug("Received %s", res)
+
+                if not res["success"]:
+                    raise VolvoAPIError(res["errMsg"])
+
                 return res
         except Exception as error:
             _LOGGER.warning(
@@ -144,6 +152,9 @@ class VehicleAPI:
             "phoneNumber": "0086" + self._username
         })
 
+        if not result["success"]:
+            return
+
         if not result["data"]["globalAccessToken"]:
             return
 
@@ -154,6 +165,7 @@ class VehicleAPI:
         self._digitalvolvo_access_token = result["data"]["accessToken"]
         now = int(time.time())
         self._access_token_expire_at = now + int(result["data"]["expiresIn"])
+        return APIResponse(True, "", {})
 
     async def update_token(self):
         now = int(time.time())
