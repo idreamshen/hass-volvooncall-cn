@@ -100,7 +100,7 @@ metaMap = {
     },
     "distance_to_empty": {
         "name": "Distance to empty",
-        "device_class": "",
+        "device_class": None,
         "icon": "mdi:ruler",
         "unit": "km",
     },
@@ -148,7 +148,7 @@ metaMap = {
     },
     "odo_meter": {
         "name": "Odometer",
-        "device_class": "",
+        "device_class": None,
         "icon": "mdi:speedometer",
         "unit": "km",
     },
@@ -178,7 +178,7 @@ metaMap = {
     },
     "fuel_amount": {
         "name": "Fuel amount",
-        "device_class": "",
+        "device_class": None,
         "icon": "mdi:gas-station",
         "unit": "L",
     }
@@ -199,9 +199,9 @@ class VolvoEntity(CoordinatorEntity):
     def icon(self):
         return metaMap[self.metaMapKey]["icon"]
 
-    #@property
-    #def device_class(self):
-    #    return metaMap[self.metaMapKey]["device_class"]
+    @property
+    def device_class(self):
+        return metaMap[self.metaMapKey]["device_class"]
 
     @property
     def device_info(self) -> DeviceInfo:
