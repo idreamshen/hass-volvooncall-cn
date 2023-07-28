@@ -40,11 +40,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
     #
     await coordinator.async_config_entry_first_refresh()
 
-    async_add_entities(
-        MyEntity(coordinator, idx) for idx, ent in enumerate(coordinator.data)
-    )
-
-
 class MyCoordinator(DataUpdateCoordinator):
     """My custom coordinator."""
 
