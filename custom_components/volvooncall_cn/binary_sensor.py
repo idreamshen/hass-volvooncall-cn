@@ -67,7 +67,7 @@ class VolvoSensor(CoordinatorEntity, BinarySensorEntity):
 
     @property
     def has_entity_name(self):
-        return true
+        return True
 
     @property
     def device_class(self):
