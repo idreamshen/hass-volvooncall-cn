@@ -97,31 +97,40 @@ metaMap = {
         "device_class": "lock",
     },
     "distance_to_empty": {
-        "name": "Distance To Empty"
+        "name": "Distance To Empty",
+        "device_class": "",
     },
     "tail_gate_open": {
-        "name": "Tail Gate Open"
+        "name": "Tail Gate Open",
+        "device_class": "",
     },
     "rear_right_door_open": {
-        "name": "Rear Right Door Open"
+        "name": "Rear Right Door Open",
+        "device_class": "",
     },
     "rear_left_door_open": {
-        "name": "Rear Left Door Open"
+        "name": "Rear Left Door Open",
+        "device_class": "",
     },
     "front_right_door_open": {
-        "name": "Front Right Door Open"
+        "name": "Front Right Door Open",
+        "device_class": "",
     },
     "front_left_door_open": {
-        "name": "Front Left Door Open"
+        "name": "Front Left Door Open",
+        "device_class": "",
     },
     "hood_open": {
-        "name": "Hood Open"
+        "name": "Hood Open",
+        "device_class": "",
     },
     "engine_running": {
-        "name": "Engine Running"
+        "name": "Engine Running",
+        "device_class": "",
     },
     "odo_meter": {
-        "name": "Odo Meter"
+        "name": "Odo Meter",
+        "device_class": "",
     }
 }
 
