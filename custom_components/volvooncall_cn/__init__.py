@@ -23,6 +23,7 @@ DOMAIN = "volvooncall_cn"
 PLATFORMS = {
     "sensor": "sensor",
     "binary_sensor": "binary_sensor",
+    "device_tracker": "device_tracker",
 }
 
 _LOGGER = logging.getLogger(__name__)
