@@ -1,3 +1,4 @@
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 # Volvo On Call CN
 Homeassistant volvooncall 中国区插件
 
