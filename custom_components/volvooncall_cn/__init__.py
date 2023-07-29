@@ -208,7 +208,7 @@ class VolvoEntity(CoordinatorEntity):
         """Return a inique set of attributes for each vehicle."""
         return DeviceInfo(
             identifiers={(DOMAIN, self.coordinator.data[self.idx].vin)},
-            name=self.coordinator.data[self.idx].series_name,
+            name="Volvo " + self.coordinator.data[self.idx].series_name,
             model=self.coordinator.data[self.idx].model_name,
             manufacturer="Volvo",
         )
