@@ -2,9 +2,16 @@
 # Volvo On Call CN
 Homeassistant volvooncall 中国区插件
 
-# 主要功能
-1. 各传感器状态（门、锁、窗、发动机、油箱、里程数）
-2. 远程控制（开锁、空调），开发ing
+# 功能列表
+1. Sensor: 油箱、里程数、续航里程
+2. BinarySensor: 门、车锁、窗、发动机
+3. DeviceTracker: 位置
+
+# TODO
+- 远程开锁
+- 远程关锁
+- 远程启动空调
+- 远程关闭空调
 
 # HACS 安装集成
 HACS -> 集成 -> 右上角三个点 -> 自定义存储库
