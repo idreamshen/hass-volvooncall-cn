@@ -34,6 +34,9 @@ DIGITALVOLVO_HEADERS = {
     "Accept": "application/json; charset=utf-8",
 }
 
+DIGITALVOLVO_URL = "https://apigateway.digitalvolvo.com"
+VOCAPI_URL = "https://vocapi.cn.prod.vocw.cn"
+
 TIMEOUT = timedelta(seconds=30)
 
 class VolvoAPIError(Exception):
@@ -135,7 +138,7 @@ class VehicleAPI:
         if (self._access_token_expire_at - now) >= 60*10:
             return
 
-        url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/auth"
+        url = urljoin(DIGITALVOLVO_URL, "/app/iam/api/v1/auth")
         result = await self.digitalvolvo_post(url, {}, {
             "authType": "password",
             "password": self._password,
@@ -163,7 +166,8 @@ class VehicleAPI:
         if (self._access_token_expire_at - now) >= 60*10:
             return
 
-        url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/refreshToken?refreshToken=" + self._refresh_token
+        url = urljoin(DIGITALVOLVO_URL, "/app/iam/api/v1/refreshToken?refreshToken=" + self._refresh_token)
+
         result = await self.digitalvolvo_get(url, {})
         self._refresh_token = result["data"]["refreshToken"]
         self._vocapi_access_token = result["data"]["globalAccessToken"]
@@ -171,7 +175,7 @@ class VehicleAPI:
         self._access_token_expire_at = now + int(result["data"]["expiresIn"])
 
     async def get_vehicles(self):
-        url = "https://apigateway.digitalvolvo.com/app/account/vehicles/api/v1/owner/listBindCar"
+        url = urljoin(DIGITALVOLVO_URL, "/app/account/vehicles/api/v1/owner/listBindCar")
         result = await self.digitalvolvo_get(url, {})
         if result['success']:
             return result['data']
@@ -187,7 +191,7 @@ class VehicleAPI:
         return vins
 
     async def get_vehicle_status(self, vin):
-        url = "https://vocapi.cn.prod.vocw.cn/customerapi/rest/vehicles/" + vin + "/status"
+        url = urljoin(VOCAPI_URL, "/customerapi/rest/vehicles/" + vin + "/status")
         return await self.vocapi_get(url, {
             "content-type": "application/vnd.wirelesscar.com.voc.VehicleStatus.v8+json; charset=utf-8",
             "accept": "application/vnd.wirelesscar.com.voc.VehicleStatus.v8+json; charset=utf-8",
