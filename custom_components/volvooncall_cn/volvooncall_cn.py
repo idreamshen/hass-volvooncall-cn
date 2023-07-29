@@ -161,6 +161,7 @@ class VehicleAPI:
         if not result["data"]["accessToken"]:
             return
 
+        self._refresh_token = result["data"]["refreshToken"]
         self._vocapi_access_token = result["data"]["globalAccessToken"]
         self._digitalvolvo_access_token = result["data"]["accessToken"]
         now = int(time.time())
@@ -174,7 +175,7 @@ class VehicleAPI:
 
         url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/refreshToken?refreshToken=" + self._refresh_token
         result = await self.digitalvolvo_get(url, {})
-        self._refresh_token = result["data"]["refresh_token"]
+        self._refresh_token = result["data"]["refreshToken"]
         self._vocapi_access_token = result["data"]["globalAccessToken"]
         self._digitalvolvo_access_token = result["data"]["accessToken"]
         self._access_token_expire_at = now + int(result["data"]["expiresIn"])
