@@ -209,7 +209,7 @@ class VolvoEntity(CoordinatorEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, self.coordinator.data[self.idx].vin)},
             name="Volvo " + self.coordinator.data[self.idx].series_name,
-            model=self.coordinator.data[self.idx].model_name,
+            model=self.coordinator.data[self.idx].series_name + " " self.coordinator.data[self.idx].model_name,
             manufacturer="Volvo",
         )
 
