@@ -13,6 +13,9 @@ Homeassistant volvooncall 中国区插件
 - 远程启动空调
 - 远程关闭空调
 
+# 测试车型
+- 2021 S60
+
 # HACS 安装集成
 HACS -> 集成 -> 右上角三个点 -> 自定义存储库
 - 存储库：https://github.com/idreamshen/hass-volvooncall-cn
