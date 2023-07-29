@@ -181,7 +181,14 @@ metaMap = {
         "device_class": None,
         "icon": "mdi:gas-station",
         "unit": "L",
+    },
+    "position": {
+        "name": "Position",
+        "device_class": None,
+        "icon": "",
+        "unit": "",
     }
+
 }
 
 class VolvoEntity(CoordinatorEntity):
