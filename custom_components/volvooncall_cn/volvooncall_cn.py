@@ -53,8 +53,6 @@ class VehicleAPI:
 
     async def _request_vocapi(self, method, url, headers, **kwargs):
         try:
-            _LOGGER.debug("Request for %s", url)
-
             final_headers = {}
             for k in VOCAPI_HEADERS:
                 final_headers[k] = VOCAPI_HEADERS[k]
@@ -62,8 +60,6 @@ class VehicleAPI:
                 final_headers[k] = headers[k]
 
             final_headers["authorization"] = "Bearer " + self._vocapi_access_token
-
-            _LOGGER.debug("final_headers=%s", final_headers)
 
             async with self._session.request(
                     method,
@@ -74,7 +70,6 @@ class VehicleAPI:
             ) as response:
                 response.raise_for_status()
                 res = await response.json(loads=json_loads)
-                _LOGGER.debug("Received %s", res)
                 return res
         except Exception as error:
             _LOGGER.warning(
@@ -86,8 +81,6 @@ class VehicleAPI:
 
     async def _request_digitalvolvo(self, method, url, headers, **kwargs):
         try:
-            _LOGGER.debug("Request for %s", url)
-
             final_headers = {}
             for k in DIGITALVOLVO_HEADERS:
                 final_headers[k] = DIGITALVOLVO_HEADERS[k]
@@ -98,8 +91,6 @@ class VehicleAPI:
             if self._digitalvolvo_access_token:
                 final_headers["authorization"] = "Bearer " + self._digitalvolvo_access_token
 
-            _LOGGER.debug("final_headers=%s", final_headers)
-
             async with self._session.request(
                     method,
                     url,
@@ -109,7 +100,6 @@ class VehicleAPI:
             ) as response:
                 response.raise_for_status()
                 res = await response.json(loads=json_loads)
-                _LOGGER.debug("Received %s", res)
 
                 if not res["success"]:
                     raise VolvoAPIError(res["errMsg"])
@@ -142,7 +132,7 @@ class VehicleAPI:
     async def login(self):
         now = int(time.time())
 
-        if (now - self._access_token_expire_at) < 60*10:
+        if (self._access_token_expire_at - now) >= 60*10:
             return
 
         url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/auth"
@@ -170,7 +160,7 @@ class VehicleAPI:
     async def update_token(self):
         now = int(time.time())
 
-        if (now - self._access_token_expire_at) < 60*10:
+        if (self._access_token_expire_at - now) >= 60*10:
             return
 
         url = "https://apigateway.digitalvolvo.com/app/iam/api/v1/refreshToken?refreshToken=" + self._refresh_token
@@ -295,6 +285,7 @@ async def main():
     async with ClientSession() as session:
         vehicle_api = VehicleAPI(session, args.username, args.password)
         await vehicle_api.login()
+        await vehicle_api.update_token()
         vins = await vehicle_api.get_vehicles_vins()
         for vin in vins:
             vehicle = Vehicle(vin, vehicle_api)
