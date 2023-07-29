@@ -197,6 +197,14 @@ class VehicleAPI:
             "accept": "application/vnd.wirelesscar.com.voc.VehicleStatus.v8+json; charset=utf-8",
         })
 
+    async def get_vehicle_position(self, vin):
+        url = urljoin(VOCAPI_URL, "/customerapi/rest/vehicles/" + vin + "/position")
+        return await self.vocapi_get(url, {
+            "content-type": "application/json; charset=utf-8",
+            "accept": "application/vnd.wirelesscar.com.voc.Position.v4+json; charset=utf-8",
+        })
+
+
 class Vehicle:
 
     def __init__(self, vin, api):
@@ -222,6 +230,10 @@ class Vehicle:
         self.rear_left_window_open = False
         self.rear_right_window_open = False
         self.fuel_amount = 0
+        self.position = {
+            "longitude": 0.0,
+            "latitude": 0.0
+        }
 
     def toMap(self):
         return {
@@ -245,6 +257,10 @@ class Vehicle:
             "rear_left_window_open": self.rear_left_window_open,
             "rear_right_window_open": self.rear_right_window_open,
             "fuel_amount": self.fuel_amount,
+            "position": {
+                "longitude": self.position["longitude"],
+                "latitude": self.position["latitude"],
+            },
         }
 
     async def update(self):
@@ -271,6 +287,12 @@ class Vehicle:
         self.rear_left_window_open = data["windows"]["rearLeftWindowOpen"]
         self.rear_right_window_open = data["windows"]["rearRightWindowOpen"]
         self.fuel_amount = data["fuelAmount"]
+
+        position_data = await self._api.get_vehicle_position(self.vin)
+        self.position = {
+            "longitude": position_data["position"]["longitude"],
+            "latitude": position_data["position"]["latitude"]
+        }
 
 def json_loads(s):
     return json.loads(s)
