@@ -37,16 +37,16 @@ class VolvoSensor(VolvoEntity, TrackerEntity):
         super().__init__(coordinator, idx, metaMapKey)
 
     @property
-    def source_type(self)
+    def source_type(self):
         """Handle updated data from the coordinator."""
         return "gps"
 
     @property
-    def latitude(self)
+    def latitude(self):
         """Handle updated data from the coordinator."""
         return self.coordinator.data[self.idx].toMap()[self.metaMapKey]["latitude"]
 
     @property
-    def longitude(self)
+    def longitude(self):
         """Handle updated data from the coordinator."""
         return self.coordinator.data[self.idx].toMap()[self.metaMapKey]["longitude"]
