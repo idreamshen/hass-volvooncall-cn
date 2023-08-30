@@ -1,4 +1,6 @@
 import logging
+
+import base64
 from datetime import timedelta
 from json import dumps as to_json
 from collections import OrderedDict
@@ -90,6 +92,8 @@ class VehicleAPI:
 
             for k in headers:
                 final_headers[k] = headers[k]
+
+            final_headers["smDeviceId"] = base64.b64encode(self._username.encode()).decode()
 
             if self._digitalvolvo_access_token:
                 final_headers["authorization"] = "Bearer " + self._digitalvolvo_access_token
