@@ -187,8 +187,13 @@ metaMap = {
         "device_class": None,
         "icon": "",
         "unit": "",
+    },
+    "position_wgs84": {
+        "name": "Position WGS84",
+        "device_class": None,
+        "icon": "",
+        "unit": "",
     }
-
 }
 
 class VolvoEntity(CoordinatorEntity):
