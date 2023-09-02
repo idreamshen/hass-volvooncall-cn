@@ -28,6 +28,7 @@ async def async_setup_entry(
     entities = []
     for idx, ent in enumerate(coordinator.data):
         entities.append(VolvoSensor(coordinator, idx, "position"))
+        entities.append(VolvoSensor(coordinator, idx, "position_wgs84"))
 
     async_add_entities(entities)
 
