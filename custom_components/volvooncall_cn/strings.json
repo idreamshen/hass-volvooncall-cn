@@ -2,10 +2,10 @@
     "config": {
         "step": {
             "user": {
-                "description": "设置 Volvo On Call 账号",
+                "description": "Setup Volvo On Call",
                 "data": {
-                    "username": "手机号（11位数字）",
-                    "password": "密码",
+                    "username": "username",
+                    "password": "password",
                 }
             }
         }
