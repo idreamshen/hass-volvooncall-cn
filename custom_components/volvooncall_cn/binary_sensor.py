@@ -41,6 +41,7 @@ async def async_setup_entry(
         entities.append(VolvoSensor(coordinator, idx, "front_right_window_open"))
         entities.append(VolvoSensor(coordinator, idx, "rear_left_window_open"))
         entities.append(VolvoSensor(coordinator, idx, "rear_right_window_open"))
+        entities.append(VolvoSensor(coordinator, idx, "sunroof_open"))
 
     async_add_entities(entities)
 

@@ -2,5 +2,6 @@
   "name": "Volvo On Call CN",
   "render_readme": true,
   "zip_release": true,
-  "filename": "volvooncall_cn.zip"
+  "filename": "volvooncall_cn.zip",
+  "render_readme": true,
 }
