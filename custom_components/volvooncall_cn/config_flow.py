@@ -22,7 +22,7 @@ class VolvoOnCallCnConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(user_input[CONF_USERNAME])
 
             session = async_get_clientsession(self.hass)
-            volvo_api = VehicleAPI(session=session, username=user_input[CONF_USERNAME], password=user_input["password"])
+            volvo_api = VehicleAPI(session=session, username=user_input[CONF_USERNAME], password=user_input[CONF_PASSWORD])
             try:
                 await volvo_api.login()
             except VolvoAPIError as err:
@@ -40,6 +40,6 @@ class VolvoOnCallCnConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=vol.Schema(
                 {
                     vol.Required(CONF_USERNAME): str,
-                    vol.Required("password"): str
+                    vol.Required(CONF_PASSWORD): str
                 }), errors=errors
         )
