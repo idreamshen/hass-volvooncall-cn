@@ -1,5 +1,8 @@
+![Version](https://img.shields.io/github/v/release/idreamshen/hass-volvooncall-cn?color=green&label=Version)
+[![GitHub all releases](https://img.shields.io/github/downloads/idreamshen/hass-volvooncall-cn/total?label=Downloads)](https://github.com/idreamshen/hass-volvooncall-cn/releases)
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
-[![GitHub all releases](https://img.shields.io/github/downloads/idreamshen/hass-volvooncall-cn/total)](https://github.com/idreamshen/hass-volvooncall-cn/releases)
+
+
 
 # Volvo On Call CN
 Homeassistant volvooncall 中国区插件
