@@ -39,7 +39,7 @@ class VolvoOnCallCnConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user", data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_USERNAME, default==user_input[CONF_USERNAME]): str,
+                    vol.Required(CONF_USERNAME, default=user_input[CONF_USERNAME]): str,
                     vol.Required("password"): str
                 }), errors=errors
         )
