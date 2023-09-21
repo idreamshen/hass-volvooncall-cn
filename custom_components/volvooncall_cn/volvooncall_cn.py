@@ -228,6 +228,7 @@ class Vehicle:
         self.front_right_door_open = False
         self.front_left_door_open = False
         self.hood_open = False
+        self.sunroof_open = False
         self.engine_running = False
         self.odo_meter = 0
         self.front_left_window_open = False
@@ -235,6 +236,7 @@ class Vehicle:
         self.rear_left_window_open = False
         self.rear_right_window_open = False
         self.fuel_amount = 0
+        self.fuel_amount_level = 0
         self.position = {
             "longitude": 0.0,
             "latitude": 0.0
@@ -259,6 +261,7 @@ class Vehicle:
             "front_right_door_open": self.front_right_door_open,
             "front_left_door_open": self.front_left_door_open,
             "hood_open": self.hood_open,
+            "sunroof_open": self.sunroof_open,
             "engine_running": self.engine_running,
             "odo_meter": self.odo_meter,
             "front_left_window_open": self.front_left_window_open,
@@ -266,6 +269,7 @@ class Vehicle:
             "rear_left_window_open": self.rear_left_window_open,
             "rear_right_window_open": self.rear_right_window_open,
             "fuel_amount": self.fuel_amount,
+            "fuel_amount_level": self.fuel_amount_level,
             "position": {
                 "longitude": self.position["longitude"],
                 "latitude": self.position["latitude"],
@@ -294,6 +298,7 @@ class Vehicle:
         self.front_right_door_open = data["doors"]["frontRightDoorOpen"]
         self.front_left_door_open = data["doors"]["frontLeftDoorOpen"]
         self.hood_open = data["doors"]["hoodOpen"]
+        self.sunroof_open = data["sunroofOpen"]
         self.engine_running = data["engineRunning"]
         self.odo_meter = int(data["odometer"] / 1000)
         self.front_left_window_open = data["windows"]["frontLeftWindowOpen"]
@@ -301,6 +306,7 @@ class Vehicle:
         self.rear_left_window_open = data["windows"]["rearLeftWindowOpen"]
         self.rear_right_window_open = data["windows"]["rearRightWindowOpen"]
         self.fuel_amount = data["fuelAmount"]
+        self.fuel_amount_level = data["fuelAmountLevel"]
 
         position_data = await self._api.get_vehicle_position(self.vin)
         self.position = {

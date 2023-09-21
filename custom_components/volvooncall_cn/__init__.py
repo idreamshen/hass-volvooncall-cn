@@ -140,6 +140,12 @@ metaMap = {
         "icon": "",
         "unit": "",
     },
+    "sunroof_open": {
+        "name": "Sunroof",
+        "device_class": "window",
+        "icon": "",
+        "unit": "",
+    },
     "engine_running": {
         "name": "Engine",
         "device_class": "power",
@@ -181,6 +187,12 @@ metaMap = {
         "device_class": None,
         "icon": "mdi:gas-station",
         "unit": "L",
+    },
+    "fuel_amount_level": {
+        "name": "Fuel amount level",
+        "device_class": None,
+        "icon": "mdi:gas-station",
+        "unit": "%",
     },
     "position": {
         "name": "Position",
