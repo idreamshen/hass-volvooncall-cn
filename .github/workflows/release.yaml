@@ -18,7 +18,7 @@ jobs:
       - name: Upload zip to release
         uses: svenstaro/upload-release-action@v2
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: ${{ secrets.UPLOAD_ASSERT_TO_RELEASE_TOKEN }}
           file: ${{ github.workspace }}/custom_components/volvooncall_cn/volvooncall_cn.zip
           asset_name: volvooncall_cn.zip
           tag: ${{ github.ref }}
