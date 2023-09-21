@@ -1,13 +1,13 @@
 {
-    "config": {
-        "step": {
-            "user": {
-                "description": "Setup Volvo On Call",
-                "data": {
-                    "username": "username",
-                    "password": "password",
-                }
-            }
+  "config": {
+    "step": {
+      "user": {
+        "description": "Setup Volvo On Call",
+        "data": {
+          "username": "username",
+          "password": "password"
         }
+      }
     }
+  }
 }
