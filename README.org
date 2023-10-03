@@ -12,7 +12,7 @@
 
 #+begin_html
 <a href="https://github.com/hacs/integration">
-<img alt="" src="[[https://img.shields.io/badge/HACS-Custom-41BDF5.svg]]" />
+<img alt="" src="https://img.shields.io/badge/HACS-Custom-41BDF5.svg" />
 </a>
 #+end_html
 
