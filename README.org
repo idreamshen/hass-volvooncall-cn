@@ -23,12 +23,13 @@ Homeassistant volvooncall 中国区插件
 1. Sensor: 油箱、里程数、续航里程
 2. BinarySensor: 门、车锁、窗、发动机
 3. DeviceTracker: 位置
+4. Lock: 远程开锁、关锁
 
-* TODO
-- 远程开锁
-- 远程关锁
-- 远程启动空调
-- 远程关闭空调
+* 开发中
+- [X] 远程开锁
+- [X] 远程关锁
+- [ ] 远程启动空调
+- [ ] 远程关闭空调
 
 * 测试车型
 - 2021 S60
