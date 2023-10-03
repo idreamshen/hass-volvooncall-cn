@@ -24,6 +24,7 @@ PLATFORMS = {
     "sensor": "sensor",
     "binary_sensor": "binary_sensor",
     "device_tracker": "device_tracker",
+    "lock": "lock",
 }
 
 _LOGGER = logging.getLogger(__name__)
@@ -92,6 +93,11 @@ class VolvoCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(f"Error communicating with API: {err}")
 
 metaMap = {
+    "car_lock": {
+        "name": "Lock",
+        "icon": "",
+        "unit": "",
+    },
     "car_lock_open": {
         "name": "Lock",
         "device_class": "lock",

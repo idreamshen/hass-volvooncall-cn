@@ -209,6 +209,20 @@ class VehicleAPI:
             "accept": "application/vnd.wirelesscar.com.voc.Position.v4+json; charset=utf-8",
         })
 
+    async def lock_vehicle(self, vin):
+        url = urljoin(VOCAPI_URL, "/customerapi/rest/vehicles/" + vin + "/lock")
+        return await self.vocapi_post(url, {
+            "content-type": "application/json; charset=utf-8",
+            "accept": "application/vnd.wirelesscar.com.voc.Service.v4+json; charset=utf-8",
+        }, None)
+
+    async def unlock_vehicle(self, vin):
+        url = urljoin(VOCAPI_URL, "/customerapi/rest/vehicles/" + vin + "/unlock")
+        return await self.vocapi_post(url, {
+            "content-type": "application/json; charset=utf-8",
+            "accept": "application/vnd.wirelesscar.com.voc.Service.v4+json; charset=utf-8",
+        }, None)
+
 
 class Vehicle:
 
@@ -318,6 +332,12 @@ class Vehicle:
             "longitude": wgs84_data[0],
             "latitude": wgs84_data[1]
         }
+
+    async def unlock(self):
+        await self._api.unlock_vehicle(self.vin)
+
+    async def lock(self):
+        await self._api.lock_vehicle(self.vin)
 
 def json_loads(s):
     return json.loads(s)
