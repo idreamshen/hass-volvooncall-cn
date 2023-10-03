@@ -6,7 +6,7 @@
 # Volvo On Call CN
 Homeassistant volvooncall 中国区插件
 
-# 功能一览
+# 实体一览
 `{vin}` 表示车架号
 | ID                                          | 名称               | 备注                                                                                                                                     |
 |---------------------------------------------|--------------------|------------------------------------------------------------------------------------------------------------------------------------------|
@@ -28,19 +28,6 @@ Homeassistant volvooncall 中国区插件
 | `binary_sensor.{vin}_remote_door_unlock`    | 远程解锁状态       | `lock.{vin}_lock` 执行“远程解锁时”会修改该状态                                                                                           |
 | `binary_sensor.{vin}_sunroof`               | 天窗               |                                                                                                                                          |
 | `binary_sensor.{vin}_tail_gate`             | 尾门               |                                                                                                                                          |
-
-
-
-# 功能列表
-1. Sensor: 油箱、里程数、续航里程
-2. BinarySensor: 门、车锁、窗、发动机
-3. DeviceTracker: 位置
-
-# TODO
-- 远程开锁
-- 远程关锁
-- 远程启动空调
-- 远程关闭空调
 
 # 测试车型
 - 2021 S60
