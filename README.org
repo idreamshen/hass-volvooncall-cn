@@ -10,7 +10,11 @@
 </a>
 #+end_html
 
-[[https://github.com/hacs/integration][https://img.shields.io/badge/HACS-Custom-41BDF5.svg]]
+#+begin_html
+<a href="https://github.com/hacs/integration">
+<img alt="" src="[[https://img.shields.io/badge/HACS-Custom-41BDF5.svg]]" />
+</a>
+#+end_html
 
 * Volvo On Call CN
 Homeassistant volvooncall 中国区插件
