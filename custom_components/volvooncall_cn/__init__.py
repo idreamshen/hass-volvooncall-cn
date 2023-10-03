@@ -95,6 +95,7 @@ class VolvoCoordinator(DataUpdateCoordinator):
 metaMap = {
     "car_lock": {
         "name": "Lock",
+        "device_class": None,
         "icon": "",
         "unit": "",
     },
