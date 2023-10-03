@@ -40,7 +40,9 @@ DIGITALVOLVO_HEADERS = {
 DIGITALVOLVO_URL = "https://apigateway.digitalvolvo.com"
 VOCAPI_URL = "https://vocapi.cn.prod.vocw.cn"
 
-TIMEOUT = timedelta(seconds=30)
+TIMEOUT = timedelta(seconds=10)
+MAX_RETRIES = 3
+
 
 class VolvoAPIError(Exception):
     def __init__(self, message):
@@ -58,68 +60,76 @@ class VehicleAPI:
         self._access_token_expire_at = 0
 
     async def _request_vocapi(self, method, url, headers, **kwargs):
-        try:
-            final_headers = {}
-            for k in VOCAPI_HEADERS:
-                final_headers[k] = VOCAPI_HEADERS[k]
-            for k in headers:
-                final_headers[k] = headers[k]
+        for i in range(MAX_RETRIES):
+            try:
+                final_headers = {}
+                for k in VOCAPI_HEADERS:
+                    final_headers[k] = VOCAPI_HEADERS[k]
+                for k in headers:
+                    final_headers[k] = headers[k]
 
-            final_headers["authorization"] = "Bearer " + self._vocapi_access_token
+                final_headers["authorization"] = "Bearer " + self._vocapi_access_token
 
-            async with self._session.request(
-                    method,
-                    url,
-                    headers=final_headers,
-                    timeout=ClientTimeout(total=TIMEOUT.seconds),
-                    **kwargs
-            ) as response:
-                response.raise_for_status()
-                res = await response.json(loads=json_loads)
-                return res
-        except Exception as error:
-            _LOGGER.warning(
-                "Failure when communicating with the server: %s",
-                error,
-                exc_info=True,
-            )
-            raise
+                async with self._session.request(
+                        method,
+                        url,
+                        headers=final_headers,
+                        timeout=ClientTimeout(total=TIMEOUT.seconds),
+                        **kwargs
+                ) as response:
+                    response.raise_for_status()
+                    res = await response.json(loads=json_loads)
+                    return res
+            except Exception as error:
+                _LOGGER.warning(
+                    "Failure when communicating with the server: %s",
+                    error,
+                    exc_info=True,
+                )
+                if i < MAX_RETRIES - 1:  # Don't delay on last attempt
+                    await asyncio.sleep(2**i)  # Exponential backoff
+                else:
+                    raise
 
     async def _request_digitalvolvo(self, method, url, headers, **kwargs):
-        try:
-            final_headers = {}
-            for k in DIGITALVOLVO_HEADERS:
-                final_headers[k] = DIGITALVOLVO_HEADERS[k]
+        for i in range(MAX_RETRIES):
+            try:
+                final_headers = {}
+                for k in DIGITALVOLVO_HEADERS:
+                    final_headers[k] = DIGITALVOLVO_HEADERS[k]
 
-            for k in headers:
-                final_headers[k] = headers[k]
+                for k in headers:
+                    final_headers[k] = headers[k]
 
-            final_headers["smDeviceId"] = base64.b64encode(self._username.encode()).decode()
+                final_headers["smDeviceId"] = base64.b64encode(self._username.encode()).decode()
 
-            if self._digitalvolvo_access_token:
-                final_headers["authorization"] = "Bearer " + self._digitalvolvo_access_token
+                if self._digitalvolvo_access_token:
+                    final_headers["authorization"] = "Bearer " + self._digitalvolvo_access_token
 
-            async with self._session.request(
-                    method,
-                    url,
-                    headers=final_headers,
-                    timeout=ClientTimeout(total=TIMEOUT.seconds),
-                    **kwargs
-            ) as response:
-                response.raise_for_status()
-                res = await response.json(loads=json_loads)
+                async with self._session.request(
+                        method,
+                        url,
+                        headers=final_headers,
+                        timeout=ClientTimeout(total=TIMEOUT.seconds),
+                        **kwargs
+                ) as response:
+                    response.raise_for_status()
+                    res = await response.json(loads=json_loads)
 
-                if not res["success"]:
-                    raise VolvoAPIError(res["errMsg"])
+                    if not res["success"]:
+                        raise VolvoAPIError(res["errMsg"])
 
-                return res
-        except Exception as error:
-            _LOGGER.warning(
-                "Failure when communicating with the server: %s",
-                error,
-                exc_info=True,
-            )
-            raise
+                    return res
+            except Exception as error:
+                _LOGGER.warning(
+                    "Failure when communicating with the server: %s",
+                    error,
+                    exc_info=True,
+                )
+                if i < MAX_RETRIES - 1:  # Don't delay on last attempt
+                    await asyncio.sleep(2**i)  # Exponential backoff
+                else:
+                    raise
 
     async def vocapi_get(self, url, headers):
         """Perform a query to the online service."""
