@@ -105,6 +105,12 @@ metaMap = {
         "icon": "",
         "unit": "",
     },
+    "remote_door_unlock": {
+        "name": "Remote Door Unlock",
+        "device_class": "lock",
+        "icon": "",
+        "unit": "",
+    },
     "distance_to_empty": {
         "name": "Distance to empty",
         "device_class": None,

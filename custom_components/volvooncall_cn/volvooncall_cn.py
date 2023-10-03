@@ -223,6 +223,13 @@ class VehicleAPI:
             "accept": "application/vnd.wirelesscar.com.voc.Service.v4+json; charset=utf-8",
         }, None)
 
+    async def get_vehicle_active_services(self, vin):
+        url = urljoin(VOCAPI_URL, "/customerapi/rest/vehicles/" + vin + "/services?active=true")
+        return await self.vocapi_get(url, {
+            "content-type": "application/json; charset=utf-8",
+            "accept": "application/vnd.wirelesscar.com.voc.Services.v4+json; charset=utf-8",
+        })
+
 
 class Vehicle:
 
@@ -260,6 +267,8 @@ class Vehicle:
             "latitude": 0.0
         }
 
+        self.remote_door_unlock = False
+
     def toMap(self):
         return {
             "series_name": self.series_name,
@@ -292,6 +301,7 @@ class Vehicle:
                 "longitude": self.position_wgs84["longitude"],
                 "latitude": self.position_wgs84["latitude"],
             },
+            "remote_door_unlock": self.remote_door_unlock,
 
         }
 
@@ -332,6 +342,17 @@ class Vehicle:
             "longitude": wgs84_data[0],
             "latitude": wgs84_data[1]
         }
+
+        services_resp = await self._api.get_vehicle_active_services(self.vin)
+        is_rdu_existed = False
+        if "services" in services_resp:
+            for service in services_resp["services"]:
+                if service["serviceType"] == "RDU":
+                    is_rdu_existed = True
+                    self.remote_door_unlock = True
+
+        if not is_rdu_existed:
+            self.remote_door_unlock = False
 
     async def unlock(self):
         await self._api.unlock_vehicle(self.vin)
