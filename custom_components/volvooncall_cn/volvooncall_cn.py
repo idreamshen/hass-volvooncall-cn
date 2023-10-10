@@ -357,7 +357,7 @@ class Vehicle:
         is_rdu_existed = False
         if "services" in services_resp:
             for service in services_resp["services"]:
-                if service["serviceType"] == "RDU":
+                if service["serviceType"] == "RDU" and service["status"] == "MessageDelivered":
                     is_rdu_existed = True
                     self.remote_door_unlock = True
 
