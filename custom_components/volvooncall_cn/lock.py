@@ -50,7 +50,7 @@ class VolvoSensor(VolvoEntity, LockEntity):
     def is_locked(self) -> bool | None:
         """Handle updated data from the coordinator."""
         data_map = self.coordinator.data[self.idx].toMap()
-        return data_map["car_locked"] && !data_map["remote_door_unlock"]
+        return data_map["car_locked"] and !data_map["remote_door_unlock"]
 
     async def async_lock(self, **kwargs: Any) -> None:
         """Lock the car."""
