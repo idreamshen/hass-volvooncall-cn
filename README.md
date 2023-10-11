@@ -11,6 +11,7 @@ Homeassistant volvooncall 中国区插件
 | ID                                          | 名称               | 备注                                                                                                                                     |
 |---------------------------------------------|--------------------|------------------------------------------------------------------------------------------------------------------------------------------|
 | `lock.{vin}_lock`                           | 车锁               | 可以远程锁定或解锁车辆。远程解锁时，会变更 `binary_sensor.{vin}_remote_door_unlock` 的状态；远程锁定时，会变更 `binary_sensor.{vin}_lock` 的状态 |
+| `sensor.{vin}_engine`                       | 引擎               |                                                                                                                                          |
 | `sensor.{vin}_distance_to_empty`            | 续航里程           |                                                                                                                                          |
 | `binary_sensor.{vin}_lock`                  | 车锁状态           |                                                                                                                                          |
 | `binary_sensor.{vin}_front_left_door`       | 前左门             | 表示门是否打开                                                                                                                           |
@@ -28,6 +29,8 @@ Homeassistant volvooncall 中国区插件
 | `binary_sensor.{vin}_remote_door_unlock`    | 远程解锁状态       | `lock.{vin}_lock` 执行“远程解锁时”会修改该状态                                                                                           |
 | `binary_sensor.{vin}_sunroof`               | 天窗               |                                                                                                                                          |
 | `binary_sensor.{vin}_tail_gate`             | 尾门               |                                                                                                                                          |
+| `device_tracker.{vin}_position`             | 位置               |                                                                                                                                          |
+| `device_tracker.{vin}_position_wgs84`       | 位置 wgs84 坐标    | 在 ha 默认地图上展示车辆时，请使用此实体                                                                                                 |
 
 # 测试车型
 - 2021 S60
