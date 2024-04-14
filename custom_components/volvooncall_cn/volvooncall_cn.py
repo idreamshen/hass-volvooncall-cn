@@ -16,6 +16,8 @@ import math
 from aiohttp import ClientSession, ClientTimeout, BasicAuth
 from aiohttp.hdrs import METH_GET, METH_POST
 
+from sign import sign_request
+
 _LOGGER = logging.getLogger(__name__)
 
 VOCAPI_HEADERS = {
@@ -101,10 +103,12 @@ class VehicleAPI:
                 for k in headers:
                     final_headers[k] = headers[k]
 
-                final_headers["smDeviceId"] = base64.b64encode(self._username.encode()).decode()
-
                 if self._digitalvolvo_access_token:
                     final_headers["authorization"] = "Bearer " + self._digitalvolvo_access_token
+
+                sign = sign_request(url, method, kwargs.get('body', None))
+                final_headers["x-sdk-date"] = sign['x-sdk-date']
+                final_headers["v587sign"] = sign['v587sign']
 
                 async with self._session.request(
                         method,
