@@ -63,6 +63,7 @@ class VehicleAPI:
 
         self._refresh_token = ""
         self._digitalvolvo_access_token = ""
+        self._digitalvolvo_x_token = ""
         self._vocapi_access_token = ""
         self._access_token_expire_at = 0
 
@@ -110,6 +111,9 @@ class VehicleAPI:
 
                 if self._digitalvolvo_access_token:
                     final_headers["authorization"] = "Bearer " + self._digitalvolvo_access_token
+
+                if self._digitalvolvo_x_token:
+                    final_headers["X-Token"] = self._digitalvolvo_x_token
 
                 sign = sign_request(url, method, kwargs.get('body', None))
                 final_headers["x-sdk-date"] = sign['x-sdk-date']
@@ -181,6 +185,7 @@ class VehicleAPI:
         self._refresh_token = result["data"]["refreshToken"]
         self._vocapi_access_token = result["data"]["globalAccessToken"]
         self._digitalvolvo_access_token = result["data"]["accessToken"]
+        self._digitalvolvo_x_token = result["data"]["jwtToken"]
         now = int(time.time())
         self._access_token_expire_at = now + int(result["data"]["expiresIn"])
 
@@ -196,6 +201,7 @@ class VehicleAPI:
         self._refresh_token = result["data"]["refreshToken"]
         self._vocapi_access_token = result["data"]["globalAccessToken"]
         self._digitalvolvo_access_token = result["data"]["accessToken"]
+        self._digitalvolvo_x_token = result["data"]["jwtToken"]
         self._access_token_expire_at = now + int(result["data"]["expiresIn"])
 
     async def get_vehicles(self):
@@ -474,7 +480,7 @@ def sign_request(url, method, body):
             "x-sdk-content-sha256": "UNSIGNED-PAYLOAD",
             "host": "apigateway.digitalvolvo.com"
         },
-        'method': "POST",
+        'method': method,
         'body': body,
         'uri': parsed_url.path,
         'host': "apigateway.digitalvolvo.com",
@@ -496,7 +502,7 @@ def sign_request(url, method, body):
 
     return {
         'x-sdk-date':  request['headers']['x-sdk-date'],
-        'v587sign': format_auth_header(signature, key, [k.lower() for k in request['headers']])
+        'v587sign': format_auth_header(signature, key, sorted([k.lower() for k in request['headers']]))
     }
 
 async def main():
