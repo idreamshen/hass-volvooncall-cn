@@ -10,7 +10,8 @@
     "documentation": "https://github.com/idreamshen/hass-volvooncall-cn",
     "iot_class": "cloud_polling",
     "requirements": [
-        "grpcio>=1.67.1"
+        "grpcio>=1.67.1",
+        "grpcio-tools>=1.67.1"
     ],
     "version": "0.1.4",
     "loggers": [
