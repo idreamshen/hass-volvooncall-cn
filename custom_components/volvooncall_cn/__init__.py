@@ -16,15 +16,18 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from .volvooncall_cn import VehicleAPI, Vehicle
-
-DOMAIN = "volvooncall_cn"
+from .volvooncall_cn import VehicleAPI
+from .volvooncall_cn import Vehicle
+from .volvooncall_cn import DOMAIN
 
 PLATFORMS = {
     "sensor": "sensor",
     "binary_sensor": "binary_sensor",
     "device_tracker": "device_tracker",
     "lock": "lock",
+    "button": "button",
+    "number": "number",
+    "switch": "switch",
 }
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,6 +53,7 @@ async def async_setup_entry(hass, entry):
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
+
 
 class VolvoCoordinator(DataUpdateCoordinator):
     """My custom coordinator."""
@@ -92,6 +96,7 @@ class VolvoCoordinator(DataUpdateCoordinator):
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}")
 
+
 metaMap = {
     "car_lock": {
         "name": "Lock",
@@ -99,18 +104,24 @@ metaMap = {
         "icon": "",
         "unit": "",
     },
-    "car_lock_open": {
-        "name": "Lock",
-        "device_class": "lock",
+    # "car_lock_open": {
+    #    "name": "Lock",
+    #    "device_class": "lock",
+    #    "icon": "",
+    #    "unit": "",
+    # },
+    "window_lock": {
+        "name": "Winodw Lock",
+        "device_class": None,
         "icon": "",
         "unit": "",
     },
-    "remote_door_unlock": {
-        "name": "Remote Door Unlock",
-        "device_class": "lock",
-        "icon": "",
-        "unit": "",
-    },
+    # "remote_door_unlock": {
+    #    "name": "Remote Door Unlock",
+    #    "device_class": "lock",
+    #    "icon": "",
+    #    "unit": "",
+    # },
     "distance_to_empty": {
         "name": "Distance to empty",
         "device_class": None,
@@ -172,13 +183,13 @@ metaMap = {
         "unit": "km",
     },
     "front_left_window_open": {
-        "name": "Front left window open",
+        "name": "Front left window",
         "device_class": "window",
         "icon": "",
         "unit": "",
     },
     "front_right_window_open": {
-        "name": "Front right window open",
+        "name": "Front right window",
         "device_class": "window",
         "icon": "",
         "unit": "",
@@ -197,16 +208,17 @@ metaMap = {
     },
     "fuel_amount": {
         "name": "Fuel amount",
-        "device_class": None,
+        "device_class": "VOLUME_STORAGE",
         "icon": "mdi:gas-station",
         "unit": "L",
     },
-    "fuel_amount_level": {
-        "name": "Fuel amount level",
-        "device_class": None,
-        "icon": "mdi:gas-station",
-        "unit": "%",
-    },
+    # TODO
+    # "fuel_amount_level": {
+    #    "name": "Fuel amount level",
+    #    "device_class": None,
+    #    "icon": "mdi:gas-station",
+    #    "unit": "%",
+    # },
     "position": {
         "name": "Position",
         "device_class": None,
@@ -218,8 +230,33 @@ metaMap = {
         "device_class": None,
         "icon": "",
         "unit": "",
+    },
+    "flash_button": {
+        "name": "Flash",
+        "device_class": None,
+        "icon": "mdi:car-light-high",
+        "unit": "",
+    },
+    "honk_flash_button": {
+        "name": "Honk And Flash",
+        "device_class": None,
+        "icon": "mdi:bugle",
+        "unit": "",
+    },
+    "engine_duration_number": {
+        "name": "Engine Duration",
+        "device_class": None,
+        "icon": "mdi:clock-time-eight-outline",
+        "unit": "Minute",
+    },
+    "engine_switch": {
+        "name": "Engine Remote control",
+        "device_class": None,
+        "icon": "mdi:engine-outline",
+        "unit": "",
     }
 }
+
 
 class VolvoEntity(CoordinatorEntity):
     def __init__(self, coordinator, idx, metaMapKey):

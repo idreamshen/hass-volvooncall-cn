@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package services.vehiclestates.exterior;
+
+service ExteriorService{
+   rpc GetExterior(GetExteriorReq) returns(stream GetExteriorResp) {}
+}
+
+message GetExteriorReq{
+  string vin = 2;
+}
+
+message ExteriorDataHeader {
+  int64 updateTime = 1;
+  int64 unknown1 = 2;
+}
+
+message ExteriorData {
+  ExteriorDataHeader header = 1;
+  int32 lock = 2; //车是否解锁 1 解锁 2 锁上
+  int32 frontLeftDoor = 3; //主驾门 1开门 2关门
+  int32 frontRightDoor = 4;
+  int32 rearLeftDoor = 5;
+  int32 rearRightDoor = 6;
+  int32 frontLeftWindow = 7; //1 左前
+  int32 frontRightWindow = 8; // 右前 1开窗 2关窗 3 一条缝 
+  int32 rearLeftWindow = 9; // 左后
+  int32 rearRightWindow = 10; //右后
+  int32 hood = 11;
+  int32 tailGate = 12;// 后尾箱
+  int32 unknown3 = 13;
+  int32 sunRoof = 14;//天窗
+  int32 unknown4 = 15;
+}
+
+message GetExteriorResp {
+  string vin = 1;
+  ExteriorData data = 3;
+}

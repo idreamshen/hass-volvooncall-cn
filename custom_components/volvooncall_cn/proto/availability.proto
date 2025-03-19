@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package services.vehiclestates.availability;
+
+service AvailabilityService{
+  rpc GetAvailability(GetAvailabilityReq) returns(stream GetAvailabilityResp) {}
+}
+
+message GetAvailabilityReq {
+  string vin = 2;
+}
+
+message AvailabilityDataHead {
+  int64 updateTime = 1;
+  int64 unknown1 = 2;
+}
+
+enum AvailabilityState {
+    Unknow1 = 0;
+    NotRunning = 1;
+    RuningRecent = 2;
+    Unknow2 = 3;
+    Unknow3 = 4;
+    RunningWithKeyInCar = 5;
+}
+
+enum AvailabilityBool {
+    Unknow4 = 0;
+    No = 1;
+    Yes = 2;
+}
+
+message AvailabilityData {
+  AvailabilityDataHead head = 1;
+  AvailabilityBool engineLocalRunning = 3;
+  AvailabilityState engineRunningState = 5;
+}
+
+message GetAvailabilityResp {
+  string vin = 2;
+  AvailabilityData data = 3;
+}

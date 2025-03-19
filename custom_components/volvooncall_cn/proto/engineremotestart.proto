@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package services.vehiclestates.engineremotestart;
+
+service EngineRemoteStartService{
+  rpc GetEngineRemoteStart(GetEngineRemoteStartReq) returns(stream GetEngineRemoteStartResp){}
+}
+
+message GetEngineRemoteStartReq{
+  string vin = 2;
+}
+
+message GetEngineRemoteStartDataHead {
+  int64 updateTime = 1;
+  int64 unknown1 = 2;
+}
+enum EngineRemoteStartType {
+  Unknow1 = 0;
+  No = 1;
+  Starting = 2;
+  Yes = 3;
+}
+
+message GetEngineRemoteStartData {
+  GetEngineRemoteStartDataHead head = 1;
+  EngineRemoteStartType engineStarted = 2;
+  EngineRemoteStartType engineStarting = 3;
+
+}
+message GetEngineRemoteStartResp {
+  string vin = 2;
+  GetEngineRemoteStartData data = 3;
+}

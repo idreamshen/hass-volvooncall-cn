@@ -1,263 +1,206 @@
 import logging
-
-import base64
-from datetime import timedelta
-from json import dumps as to_json
-from collections import OrderedDict
-from sys import argv
-from urllib.parse import urljoin
+import datetime
+import os
+import grpc
 import asyncio
-import argparse
-import time
-import json
-from datetime import date, datetime
-import math
-
-from aiohttp import ClientSession, ClientTimeout, BasicAuth
-from aiohttp.hdrs import METH_GET, METH_POST
-
-import hashlib
-import hmac
-import urllib.parse
-from urllib.parse import urlparse
-from datetime import datetime
+from .volvooncall_base import VehicleBaseAPI, gcj02towgs84
+from .proto.exterior_pb2_grpc import ExteriorServiceStub
+from .proto.exterior_pb2 import GetExteriorReq, GetExteriorResp, ExteriorData
+from .proto.fuel_pb2_grpc import FuelServiceStub
+from .proto.fuel_pb2 import GetFuelReq, GetFuelResp
+from .proto.invocation_pb2_grpc import InvocationServiceStub
+from .proto.invocation_pb2 import windowControlReq, windowControlResp, invocationHead
+from .proto.invocation_pb2 import EngineStartReq, EngineStartResp, EngineStartType
+from .proto.invocation_pb2 import HonkFlashReq, HonkFlashResp
+from .proto.invocation_pb2 import LockReq, LockResp
+from .proto.odometer_pb2_grpc import OdometerServiceStub
+from .proto.odometer_pb2 import GetOdometerReq, GetOdometerResp
+from .proto.availability_pb2_grpc import AvailabilityServiceStub
+from .proto.availability_pb2 import GetAvailabilityReq, GetAvailabilityResp, AvailabilityBool
+from .proto.dtlinternet_pb2_grpc import DtlInternetServiceStub
+from .proto.dtlinternet_pb2 import StreamLastKnownLocationsReq, StreamLastKnownLocationsResp
+from .proto.engineremotestart_pb2_grpc import EngineRemoteStartServiceStub
+from .proto.engineremotestart_pb2 import GetEngineRemoteStartReq, GetEngineRemoteStartResp, EngineRemoteStartType
 
 
 _LOGGER = logging.getLogger(__name__)
 
-VOCAPI_HEADERS = {
-    "x-client-version": "5.27.0.60",
-    "x-app-name": "Volvo On Call",
-    "accept-language": "zh-CN,zh-Hans;q=0.9",
-    "user-agent": "Volvo%20Cars/5.27.0.60 CFNetwork/1399 Darwin/22.1.0",
-    "x-os-type": "iPhone OS",
-    "x-os-version": "16.1.1",
-    "x-originator-type": "app",
-}
-
-DIGITALVOLVO_HEADERS = {
-    "Content-Type": "application/json",
-    "Accept-Language": "zh-CN,zh-Hans;q=0.9",
-    "X-Ca-Version": "1.0",
-    "x-sdk-content-sha256": "UNSIGNED-PAYLOAD",
-    "version": "5.27.0",
-    "Accept": "application/json; charset=utf-8",
-}
-
-DIGITALVOLVO_URL = "https://apigateway.digitalvolvo.com"
-VOCAPI_URL = "https://vocapi.cn.prod.vocw.cn"
-
-TIMEOUT = timedelta(seconds=10)
-MAX_RETRIES = 3
+AAOS_DIGITALVOLVO_HOST = "cepmobtoken.prod.c3.volvocars.com.cn:443"
+AAOS_LBS_VOLVO_HOST = "cepmobtoken.lbs.prod.c3.volvocars.com.cn:443"
+USER_AGENT = "vca-android/5.51.1 grpc-java-okhttp/1.68.0"
+MAX_RETRIES = 1
+TIMEOUT = datetime.timedelta(seconds=10)
+DOMAIN = "volvooncall_cn"
 
 
-class VolvoAPIError(Exception):
-    def __init__(self, message):
-        self.message = message
+class AAOSWindowOpenType(object):
+    Open = 1
+    Close = 2
+    OpenCrack = 3
 
-class VehicleAPI:
+    @staticmethod
+    def isOpen(openType) -> bool:
+        return openType in [AAOSWindowOpenType.Open, AAOSWindowOpenType.OpenCrack]
+
+    @staticmethod
+    def isClose(openType) -> bool:
+        return openType == AAOSWindowOpenType.Close
+
+
+class VehicleAPI(VehicleBaseAPI):
     def __init__(self, session, username, password):
-        self._session = session
-        self._username = username
-        self._password = password
+        super(VehicleAPI, self).__init__(session, username, password)
+        os.environ["GRPC_VERBOSITY"] = "debug"
+        self.channel = None
+        self.channel_token: str = ""
+        self.lbs_channel = None
+        self.lbs_channel_token: str = ""
+        self.engine_duration = 5
 
-        self._refresh_token = ""
-        self._digitalvolvo_access_token = ""
-        self._digitalvolvo_x_token = ""
-        self._vocapi_access_token = ""
-        self._access_token_expire_at = 0
+    async def gen_channel(self, token, target):
+        callCreds = grpc.access_token_call_credentials(token)
+        sslCreds = grpc.ssl_channel_credentials()
+        creds = grpc.composite_channel_credentials(sslCreds, callCreds)
+        channel_options: tuple = (("grpc.primary_user_agent", USER_AGENT), ('grpc.accept_encoding', 'gzip'),)
+        channel = grpc.secure_channel(target, creds, options=channel_options)
+        _LOGGER.debug(channel.__dict__)
+        return channel
 
-    async def _request_vocapi(self, method, url, headers, **kwargs):
-        for i in range(MAX_RETRIES):
-            try:
-                final_headers = {}
-                for k in VOCAPI_HEADERS:
-                    final_headers[k] = VOCAPI_HEADERS[k]
-                for k in headers:
-                    final_headers[k] = headers[k]
-
-                final_headers["authorization"] = "Bearer " + self._vocapi_access_token
-
-                async with self._session.request(
-                        method,
-                        url,
-                        headers=final_headers,
-                        timeout=ClientTimeout(total=TIMEOUT.seconds),
-                        **kwargs
-                ) as response:
-                    response.raise_for_status()
-                    res = await response.json(loads=json_loads)
-                    return res
-            except Exception as error:
-                _LOGGER.warning(
-                    "Failure when communicating with the server: %s",
-                    error,
-                    exc_info=True,
-                )
-                if i < MAX_RETRIES - 1:  # Don't delay on last attempt
-                    await asyncio.sleep(2**i)  # Exponential backoff
-                else:
-                    raise
-
-    async def _request_digitalvolvo(self, method, url, headers, **kwargs):
-        for i in range(MAX_RETRIES):
-            try:
-                final_headers = {}
-                for k in DIGITALVOLVO_HEADERS:
-                    final_headers[k] = DIGITALVOLVO_HEADERS[k]
-
-                for k in headers:
-                    final_headers[k] = headers[k]
-
-                if self._digitalvolvo_access_token:
-                    final_headers["authorization"] = "Bearer " + self._digitalvolvo_access_token
-
-                if self._digitalvolvo_x_token:
-                    final_headers["X-Token"] = self._digitalvolvo_x_token
-
-                sign = sign_request(url, method, kwargs.get('body', None))
-                final_headers["x-sdk-date"] = sign['x-sdk-date']
-                final_headers["v587sign"] = sign['v587sign']
-
-                async with self._session.request(
-                        method,
-                        url,
-                        headers=final_headers,
-                        timeout=ClientTimeout(total=TIMEOUT.seconds),
-                        **kwargs
-                ) as response:
-                    response.raise_for_status()
-                    res = await response.json(loads=json_loads)
-
-                    if not res["success"]:
-                        raise VolvoAPIError(res["errMsg"])
-
-                    return res
-            except Exception as error:
-                _LOGGER.warning(
-                    "Failure when communicating with the server: %s",
-                    error,
-                    exc_info=True,
-                )
-                if i < MAX_RETRIES - 1:  # Don't delay on last attempt
-                    await asyncio.sleep(2**i)  # Exponential backoff
-                else:
-                    raise
-
-    async def vocapi_get(self, url, headers):
-        """Perform a query to the online service."""
-        return await self._request_vocapi(METH_GET, url, headers)
-
-    async def vocapi_post(self, url, headers, data):
-        """Perform a query to the online service."""
-        return await self._request_vocapi(METH_POST, url, headers, json=data)
-
-    async def digitalvolvo_get(self, url, headers):
-        """Perform a query to the online service."""
-        return await self._request_digitalvolvo(METH_GET, url, headers)
-
-    async def digitalvolvo_post(self, url, headers, data):
-        """Perform a query to the online service."""
-        return await self._request_digitalvolvo(METH_POST, url, headers, json=data)
-
-    async def login(self):
-        now = int(time.time())
-
-        if (self._access_token_expire_at - now) >= 60*10:
+    async def get_channel(self):
+        if self.channel and self.channel_token == self._vocapi_access_token.strip():
             return
+        self.channel_token = self._vocapi_access_token.strip()
+        self.channel = await self.gen_channel(self.channel_token, AAOS_DIGITALVOLVO_HOST)
 
-        url = urljoin(DIGITALVOLVO_URL, "/app/iam/api/v1/auth")
-        result = await self.digitalvolvo_post(url, {}, {
-            "authType": "password",
-            "password": self._password,
-            "phoneNumber": "0086" + self._username
-        })
-
-        if not result["success"]:
+    async def get_lbs_channel(self):
+        if self.lbs_channel and self.lbs_channel_token == self._vocapi_access_token.strip():
             return
+        self.lbs_channel_token = self._vocapi_access_token.strip()
+        self.lbs_channel = await self.gen_channel(self.lbs_channel_token, AAOS_LBS_VOLVO_HOST)
 
-        if not result["data"]["globalAccessToken"]:
-            return
+    async def get_fuel_status(self, vin) -> GetFuelResp:
+        stub = FuelServiceStub(self.channel)
+        req = GetFuelReq(vin=vin)
+        metadata: list = [("vin", vin)]
+        _LOGGER.debug(stub.__dict__)
+        res = GetFuelResp()
+        for res in stub.GetFuel(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            break
+        return res
 
-        if not result["data"]["accessToken"]:
-            return
+    async def get_exterior(self, vin) -> GetExteriorResp:
+        stub = ExteriorServiceStub(self.channel)
+        req = GetExteriorReq(vin=vin)
+        metadata: list = [("vin", vin)]
+        res = GetExteriorResp()
+        for res in stub.GetExterior(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            break
+        return res
 
-        self._refresh_token = result["data"]["refreshToken"]
-        self._vocapi_access_token = result["data"]["globalAccessToken"]
-        self._digitalvolvo_access_token = result["data"]["accessToken"]
-        self._digitalvolvo_x_token = result["data"]["jwtToken"]
-        now = int(time.time())
-        self._access_token_expire_at = now + int(result["data"]["expiresIn"])
+    async def get_odometer(self, vin) -> GetOdometerResp:
+        stub = OdometerServiceStub(self.channel)
+        req = GetOdometerReq(vin=vin)
+        metadata: list = [("vin", vin)]
+        res = GetOdometerResp()
+        for res in stub.GetOdometer(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            break
+        return res
 
-    async def update_token(self):
-        now = int(time.time())
+    async def get_availability(self, vin) -> GetAvailabilityResp:
+        stub = AvailabilityServiceStub(self.channel)
+        req = GetAvailabilityReq(vin=vin)
+        metadata: list = [("vin", vin)]
+        res = GetAvailabilityResp()
+        for res in stub.GetAvailability(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            break
+        return res
 
-        if (self._access_token_expire_at - now) >= 60*10:
-            return
+    async def window_control(self, vin, opentype) -> bool:
+        stub = InvocationServiceStub(self.channel)
+        req_header = invocationHead(vin=vin)
+        req = windowControlReq(head=req_header, openType=opentype)
+        metadata: list = [("vin", vin)]
+        res: windowControlResp = windowControlResp()
+        for res in stub.WindowControl(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            # TODO check res
+            _LOGGER.debug(res)
+            return True
+        return False
 
-        url = urljoin(DIGITALVOLVO_URL, "/app/iam/api/v1/refreshToken?refreshToken=" + self._refresh_token)
+    async def get_location(self, vin) -> StreamLastKnownLocationsResp:
+        await self.get_lbs_channel()
+        stub = DtlInternetServiceStub(self.lbs_channel)
+        req = StreamLastKnownLocationsReq(vin=vin)
+        metadata: list = [("vin", vin)]
+        res: StreamLastKnownLocationsResp = StreamLastKnownLocationsResp()
+        for res in stub.StreamLastKnownLocations(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug(res)
+            break
+        return res
 
-        result = await self.digitalvolvo_get(url, {})
-        self._refresh_token = result["data"]["refreshToken"]
-        self._vocapi_access_token = result["data"]["globalAccessToken"]
-        self._digitalvolvo_access_token = result["data"]["accessToken"]
-        self._digitalvolvo_x_token = result["data"]["jwtToken"]
-        self._access_token_expire_at = now + int(result["data"]["expiresIn"])
+    async def engine_control(self, vin, startType) -> bool:
+        stub = InvocationServiceStub(self.channel)
+        req_header = invocationHead(vin=vin)
+        req = EngineStartReq()
+        if startType == EngineStartType.Start:
+            duration = int(self.engine_duration)
+            req = EngineStartReq(head=req_header, openType=startType, startDurationMin=duration)
+        else:
+            req = EngineStartReq(head=req_header, openType=startType)
+        metadata: list = [("vin", vin)]
+        res: EngineStartResp = EngineStartResp()
+        for res in stub.EngineStart(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug(res)
+            return True
+        return False
 
-    async def get_vehicles(self):
-        url = urljoin(DIGITALVOLVO_URL, "/app/account/vehicles/api/v1/owner/listBindCar")
-        result = await self.digitalvolvo_get(url, {})
-        if result['success']:
-            return result['data']
+    async def honk_flash_control(self, vin, is_only_flash: bool) -> bool:
+        stub = InvocationServiceStub(self.channel)
+        req_header = invocationHead(vin=vin)
+        req = HonkFlashReq(head=req_header)
+        if is_only_flash:
+            req.onlyFlash = 2
+        metadata: list = [("vin", vin)]
+        res: HonkFlashResp = HonkFlashResp()
+        for res in stub.HonkFlash(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug(res)
+            return True
+        return False
 
-        return []
+    async def door_lock(self, vin) -> bool:
+        stub = InvocationServiceStub(self.channel)
+        req_header = invocationHead(vin=vin)
+        req = LockReq(head=req_header, lockType=1)
+        metadata: list = [("vin", vin)]
+        res: LockResp = LockResp()
+        for res in stub.Lock(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug(res)
+            return True
+        return False
 
-    async def get_vehicles_vins(self):
-        data = await self.get_vehicles()
-        vins = []
-        for k in data:
-            vins.append(k["vinCode"])
+    async def door_unlock(self, vin) -> bool:
+        stub = InvocationServiceStub(self.channel)
+        req_header = invocationHead(vin=vin)
+        req = LockReq(head=req_header, lockType=2)
+        metadata: list = [("vin", vin)]
+        res: LockResp = LockResp()
+        for res in stub.Unlock(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug(res)
+            return True
+        return False
 
-        return vins
-
-    async def get_vehicle_status(self, vin):
-        url = urljoin(VOCAPI_URL, "/customerapi/rest/vehicles/" + vin + "/status")
-        return await self.vocapi_get(url, {
-            "content-type": "application/vnd.wirelesscar.com.voc.VehicleStatus.v8+json; charset=utf-8",
-            "accept": "application/vnd.wirelesscar.com.voc.VehicleStatus.v8+json; charset=utf-8",
-        })
-
-    async def get_vehicle_position(self, vin):
-        url = urljoin(VOCAPI_URL, "/customerapi/rest/vehicles/" + vin + "/position")
-        return await self.vocapi_get(url, {
-            "content-type": "application/json; charset=utf-8",
-            "accept": "application/vnd.wirelesscar.com.voc.Position.v4+json; charset=utf-8",
-        })
-
-    async def lock_vehicle(self, vin):
-        url = urljoin(VOCAPI_URL, "/customerapi/rest/vehicles/" + vin + "/lock")
-        return await self.vocapi_post(url, {
-            "content-type": "application/json; charset=utf-8",
-            "accept": "application/vnd.wirelesscar.com.voc.Service.v4+json; charset=utf-8",
-        }, None)
-
-    async def unlock_vehicle(self, vin):
-        url = urljoin(VOCAPI_URL, "/customerapi/rest/vehicles/" + vin + "/unlock")
-        return await self.vocapi_post(url, {
-            "content-type": "application/json; charset=utf-8",
-            "accept": "application/vnd.wirelesscar.com.voc.Service.v4+json; charset=utf-8",
-        }, None)
-
-    async def get_vehicle_active_services(self, vin):
-        url = urljoin(VOCAPI_URL, "/customerapi/rest/vehicles/" + vin + "/services?active=true")
-        return await self.vocapi_get(url, {
-            "content-type": "application/json; charset=utf-8",
-            "accept": "application/vnd.wirelesscar.com.voc.Services.v4+json; charset=utf-8",
-        })
+    async def get_engine_status(self, vin):
+        stub = EngineRemoteStartServiceStub(self.channel)
+        req = GetEngineRemoteStartReq(vin=vin)
+        metadata: list = [("vin", vin)]
+        res: GetEngineRemoteStartResp = GetEngineRemoteStartResp()
+        for res in stub.GetEngineRemoteStart(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug(res)
+            break
+        return res
 
 
-class Vehicle:
-
+class Vehicle(object):
     def __init__(self, vin, api):
         self.vin = vin
         self._api = api
@@ -265,9 +208,7 @@ class Vehicle:
         self.series_name = ""
         self.model_name = ""
         self.car_locked = False
-        self.car_locked_updated_at = 0
-        self.distance_to_empty = 0 # 续航公里
-        self.distance_to_empty_updated_at = 0
+        self.distance_to_empty = 0  # 续航公里
         self.tail_gate_open = False
         self.rear_right_door_open = False
         self.rear_left_door_open = False
@@ -276,13 +217,14 @@ class Vehicle:
         self.hood_open = False
         self.sunroof_open = False
         self.engine_running = False
+        self.engine_remote_running = False
         self.odo_meter = 0
         self.front_left_window_open = False
         self.front_right_window_open = False
         self.rear_left_window_open = False
         self.rear_right_window_open = False
         self.fuel_amount = 0
-        self.fuel_amount_level = 0
+        # self.fuel_amount_level = 0
         self.position = {
             "longitude": 0.0,
             "latitude": 0.0
@@ -292,43 +234,88 @@ class Vehicle:
             "latitude": 0.0
         }
 
-        self.remote_door_unlock = False
+    async def _parse_exterior(self):
+        try:
+            exterior_resp: GetExteriorResp = await self._api.get_exterior(self.vin)
+            exterior_data: ExteriorData = exterior_resp.data
+            _LOGGER.debug(exterior_data)
+        except Exception as err:
+            _LOGGER.error(err)
+            return
+        self.car_locked = AAOSWindowOpenType.isClose(exterior_data.lock)
+        self.front_left_door_open = AAOSWindowOpenType.isOpen(exterior_data.frontLeftDoor)
+        self.front_right_door_open = AAOSWindowOpenType.isOpen(exterior_data.frontRightDoor)
+        self.rear_left_door_open = AAOSWindowOpenType.isOpen(exterior_data.rearLeftDoor)
+        self.rear_right_door_open = AAOSWindowOpenType.isOpen(exterior_data.rearRightDoor)
+        self.front_left_window_open = AAOSWindowOpenType.isOpen(exterior_data.frontLeftWindow)
+        self.front_right_window_open = AAOSWindowOpenType.isOpen(exterior_data.frontRightWindow)
+        self.rear_left_window_open = AAOSWindowOpenType.isOpen(exterior_data.rearLeftWindow)
+        self.rear_right_window_open = AAOSWindowOpenType.isOpen(exterior_data.rearRightWindow)
+        self.sunroof_open = AAOSWindowOpenType.isOpen(exterior_data.sunRoof)
+        self.tail_gate_open = exterior_data.tailGate == AAOSWindowOpenType.Open
+        self.hood_open = AAOSWindowOpenType.isOpen(exterior_data.hood)
 
-    def toMap(self):
-        return {
-            "series_name": self.series_name,
-            "model_name": self.model_name,
-            "car_locked": self.car_locked,
-            "car_lock_open": not self.car_locked,
-            "car_locked_updated_at": self.car_locked_updated_at,
-            "distance_to_empty": self.distance_to_empty,
-            "distance_to_empty_updated_at": self.distance_to_empty_updated_at,
-            "tail_gate_open": self.tail_gate_open,
-            "rear_right_door_open": self.rear_right_door_open,
-            "rear_left_door_open": self.rear_left_door_open,
-            "front_right_door_open": self.front_right_door_open,
-            "front_left_door_open": self.front_left_door_open,
-            "hood_open": self.hood_open,
-            "sunroof_open": self.sunroof_open,
-            "engine_running": self.engine_running,
-            "odo_meter": self.odo_meter,
-            "front_left_window_open": self.front_left_window_open,
-            "front_right_window_open": self.front_right_window_open,
-            "rear_left_window_open": self.rear_left_window_open,
-            "rear_right_window_open": self.rear_right_window_open,
-            "fuel_amount": self.fuel_amount,
-            "fuel_amount_level": self.fuel_amount_level,
-            "position": {
-                "longitude": self.position["longitude"],
-                "latitude": self.position["latitude"],
-            },
-            "position_wgs84": {
-                "longitude": self.position_wgs84["longitude"],
-                "latitude": self.position_wgs84["latitude"],
-            },
-            "remote_door_unlock": self.remote_door_unlock,
+    async def _parse_fuel(self):
+        try:
+            fuel_resp: GetFuelResp = await self._api.get_fuel_status(self.vin)
+            fuel_data = fuel_resp.data
+            _LOGGER.debug(fuel_data)
+        except Exception as err:
+            _LOGGER.error(err)
+            return
+        self.fuel_amount = round(fuel_data.fuelAmount, 2)
+        self.distance_to_empty = fuel_data.distanceToEmpty
+        # self.fuel_amount_level = fuel_data.fluelHalfLevel / 5
 
+    async def _parse_odometer(self):
+        try:
+            odometer_resp: GetOdometerResp = await self._api.get_odometer(self.vin)
+            odometer_data = odometer_resp.data
+            _LOGGER.debug(odometer_data)
+        except Exception as err:
+            _LOGGER.error(err)
+            return
+        self.odo_meter = odometer_data.totalDistance / 1000
+
+    async def _parse_availability(self):
+        try:
+            availability_resp: GetAvailabilityResp = await self._api.get_availability(self.vin)
+            availability_data = availability_resp.data
+            _LOGGER.debug(availability_data)
+        except Exception as err:
+            _LOGGER.error(err)
+            return
+        self.engine_running = availability_data.engineLocalRunning == AvailabilityBool.Yes
+
+    async def _parse_location(self):
+        try:
+            location_resp: StreamLastKnownLocationsResp = await self._api.get_location(self.vin)
+        except Exception as err:
+            _LOGGER.error(err)
+            return
+        self.position = {
+            "latitude": location_resp.latitude,
+            "longitude": location_resp.longitude,
         }
+        wgs84_data = gcj02towgs84(self.position["longitude"], self.position["latitude"])
+        if len(wgs84_data) >= 2:
+            self.position_wgs84 = {
+                "longitude": wgs84_data[0],
+                "latitude": wgs84_data[1],
+            }
+
+    async def _parse_engine_status(self):
+        try:
+            engine_resp: GetEngineRemoteStartResp = await self._api.get_engine_status(self.vin)
+            engine_data = engine_resp.data
+        except Exception as err:
+            _LOGGER.error(err)
+            return
+        if engine_data.engineStarting == EngineRemoteStartType.Yes or \
+                engine_data.engineStarted in [EngineRemoteStartType.Yes, EngineRemoteStartType.Starting]:
+            self.engine_remote_running = True
+        else:
+            self.engine_remote_running = False
 
     async def update(self):
         if not self.series_name:
@@ -338,195 +325,48 @@ class Vehicle:
                     self.series_name = vehicle["seriesName"]
                     self.model_name = vehicle["modelName"]
 
-        data = await self._api.get_vehicle_status(self.vin)
-        self.car_locked = data["carLocked"]
-        self.distance_to_empty = data["distanceToEmpty"]
-        self.tail_gate_open = data["doors"]["tailgateOpen"]
-        self.rear_right_door_open = data["doors"]["rearRightDoorOpen"]
-        self.rear_left_door_open = data["doors"]["rearLeftDoorOpen"]
-        self.front_right_door_open = data["doors"]["frontRightDoorOpen"]
-        self.front_left_door_open = data["doors"]["frontLeftDoorOpen"]
-        self.hood_open = data["doors"]["hoodOpen"]
-        self.sunroof_open = data["sunroofOpen"]
-        self.engine_running = data["engineRunning"]
-        self.odo_meter = int(data["odometer"] / 1000)
-        self.front_left_window_open = data["windows"]["frontLeftWindowOpen"]
-        self.front_right_window_open = data["windows"]["frontRightWindowOpen"]
-        self.rear_left_window_open = data["windows"]["rearLeftWindowOpen"]
-        self.rear_right_window_open = data["windows"]["rearRightWindowOpen"]
-        self.fuel_amount = data["fuelAmount"]
-        self.fuel_amount_level = data["fuelAmountLevel"]
+        tasks = []
+        await self._api.get_channel()
+        async with asyncio.TaskGroup() as tg:
+            funcs = [self._parse_exterior, self._parse_odometer,
+                     self._parse_fuel, self._parse_availability, self._parse_location, self._parse_engine_status]
+            for runf in funcs:
+                task = tg.create_task(runf())
+                tasks.append(task)
+        for task in tasks:
+            _LOGGER.debug(task.result())
 
-        position_data = await self._api.get_vehicle_position(self.vin)
-        self.position = {
-            "longitude": position_data["position"]["longitude"],
-            "latitude": position_data["position"]["latitude"]
-        }
-        wgs84_data = gcj02towgs84(self.position["longitude"], self.position["latitude"])
-        self.position_wgs84 = {
-            "longitude": wgs84_data[0],
-            "latitude": wgs84_data[1]
-        }
+    async def lock_window(self):
+        await self._api.window_control(self.vin, AAOSWindowOpenType.Close)
 
-        services_resp = await self._api.get_vehicle_active_services(self.vin)
-        is_rdu_existed = False
-        if "services" in services_resp:
-            for service in services_resp["services"]:
-                if service["serviceType"] == "RDU" and service["status"] == "MessageDelivered":
-                    is_rdu_existed = True
-                    self.remote_door_unlock = True
+    async def unlock_window(self):
+        await self._api.window_control(self.vin, AAOSWindowOpenType.Open)
 
-        if not is_rdu_existed:
-            self.remote_door_unlock = False
+    async def lock_vehicle(self):
+        await self._api.door_lock(self.vin)
 
-    async def unlock(self):
-        await self._api.unlock_vehicle(self.vin)
+    async def unlock_vehicle(self):
+        await self._api.door_unlock(self.vin)
 
-    async def lock(self):
-        await self._api.lock_vehicle(self.vin)
+    async def flash(self):
+        await self._api.honk_flash_control(self.vin, True)
 
-def json_loads(s):
-    return json.loads(s)
+    async def honk_and_flash(self):
+        await self._api.honk_flash_control(self.vin, False)
 
-x_pi = 3.14159265358979324 * 3000.0 / 180.0
-pi = 3.1415926535897932384626 # π
-a = 6378245.0 # 长半轴
-ee = 0.00669342162296594323 # 扁率
-def gcj02towgs84(lng, lat):
-    """
-    GCJ02(火星坐标系)转GPS84
-    :param lng:火星坐标系的经度
-    :param lat:火星坐标系纬度
-    :return:
-    """
-    dlat = transformlat(lng - 105.0, lat - 35.0)
-    dlng = transformlng(lng - 105.0, lat - 35.0)
-    radlat = lat / 180.0 * pi
-    magic = math.sin(radlat)
-    magic = 1 - ee * magic * magic
-    sqrtmagic = math.sqrt(magic)
-    dlat = (dlat * 180.0) / ((a * (1 - ee)) / (magic * sqrtmagic) * pi)
-    dlng = (dlng * 180.0) / (a / sqrtmagic * math.cos(radlat) * pi)
-    mglat = lat + dlat
-    mglng = lng + dlng
-    return [lng * 2 - mglng, lat * 2 - mglat]
+    async def engine_start(self):
+        await self._api.engine_control(self.vin, EngineStartType.Start)
 
-def transformlat(lng, lat):
-    ret = -100.0 + 2.0 * lng + 3.0 * lat + 0.2 * lat * lat + 0.1 * lng * lat + 0.2 * math.sqrt(math.fabs(lng))
-    ret += (20.0 * math.sin(6.0 * lng * pi) + 20.0 *math.sin(2.0 * lng * pi)) * 2.0 / 3.0
-    ret += (20.0 * math.sin(lat * pi) + 40.0 *
-    math.sin(lat / 3.0 * pi)) * 2.0 / 3.0
-    ret += (160.0 * math.sin(lat / 12.0 * pi) + 320 *
-    math.sin(lat * pi / 30.0)) * 2.0 / 3.0
-    return ret
+    async def engine_stop(self):
+        await self._api.engine_control(self.vin, EngineStartType.Stop)
 
-def transformlng(lng, lat):
-    ret = 300.0 + lng + 2.0 * lat + 0.1 * lng * lng + 0.1 * lng * lat + 0.1 * math.sqrt(math.fabs(lng))
-    ret += (20.0 * math.sin(6.0 * lng * pi) + 20.0 *math.sin(2.0 * lng * pi)) * 2.0 / 3.0
-    ret += (20.0 * math.sin(lng * pi) + 40.0 *math.sin(lng / 3.0 * pi)) * 2.0 / 3.0
-    ret += (150.0 * math.sin(lng / 12.0 * pi) + 300.0 *math.sin(lng / 30.0 * pi)) * 2.0 / 3.0
-    return ret
+    async def set_engine_duration(self, durationMin):
+        self._api.engine_duration = durationMin
 
+    def get_engine_duration(self) -> float:
+        return self._api.engine_duration
 
-def hmac_sha256(key, msg):
-    return hmac.new(key.encode(), msg.encode(), hashlib.sha256).hexdigest()
-
-def hex_encode_sha256_hash(data):
-    return hashlib.sha256(data.encode()).hexdigest()
-
-def urlencode(string):
-    return urllib.parse.quote(string, safe='')
-
-def find_header(headers, name):
-    for key, value in headers.items():
-        if key.lower() == name.lower():
-            return value
-    return None
-
-def canonical_request(req, signed_headers):
-    payload_hash = find_header(req['headers'], 'x-sdk-content-sha256')
-    if payload_hash is None:
-        payload_hash = hex_encode_sha256_hash(req['body'] if req['body'] else '')
-
-    canonical_uri = '/'.join(urlencode(p) for p in req['uri'].split('/'))
-    if not canonical_uri.endswith('/'):
-        canonical_uri += '/'
-
-    query_string = sorted((k, v) for k, v in req['query'].items())
-    canonical_query_string = '&'.join(f"{urlencode(k)}={urlencode(v)}" for k, v in query_string)
-
-    canonical_headers = '\n'.join(f"{k}:{v.strip()}" for k in signed_headers for v in [req['headers'].get(k, '')])
-    if canonical_headers:
-        canonical_headers += '\n'
-
-    return f"{req['method']}\n{canonical_uri}\n{canonical_query_string}\n{canonical_headers}\n{';'.join(signed_headers)}\n{payload_hash}"
-
-def string_to_sign(canonical_req, date_stamp, service='SDK-HMAC-SHA256'):
-    return f"{service}\n{date_stamp}\n{hex_encode_sha256_hash(canonical_req)}"
-
-def create_signature(string_to_sign, secret_key):
-    return hmac_sha256(secret_key, string_to_sign)
-
-def format_auth_header(signature, access_key, signed_headers):
-    return f"SDK-HMAC-SHA256 Access={access_key}, SignedHeaders={';'.join(signed_headers)}, Signature={signature}"
-
-def generate_date_stamp():
-    return datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
-
-def sign_request(url, method, body):
-    parsed_url = urlparse(url)
-    request = {
-        'headers': {
-            "x-sdk-content-sha256": "UNSIGNED-PAYLOAD",
-            "host": "apigateway.digitalvolvo.com"
-        },
-        'method': method,
-        'body': body,
-        'uri': parsed_url.path,
-        'host': "apigateway.digitalvolvo.com",
-        'query': {}
-    }
-    key = "204114990"
-    secret = "bjGqb3TvEEZ8W8QhoyhEH4IenwCnc4JQ"
-    date = find_header(request['headers'], 'x-sdk-date')
-    if date is None:
-        date = generate_date_stamp()
-        request['headers']['x-sdk-date'] = date
-
-    if request['method'] not in ['PUT', 'PATCH', 'POST']:
-        request['body'] = ''
-
-    canonical_req = canonical_request(request, sorted([k.lower() for k in request['headers']]))
-    string_to_sign_val = string_to_sign(canonical_req, date)
-    signature = create_signature(string_to_sign_val, secret)
-
-    return {
-        'x-sdk-date':  request['headers']['x-sdk-date'],
-        'v587sign': format_auth_header(signature, key, sorted([k.lower() for k in request['headers']]))
-    }
-
-async def main():
-    logging.basicConfig(level=logging.DEBUG)
-    parser = argparse.ArgumentParser(
-                    prog='Volvo On Call CN',
-                    description='',
-                    epilog='')
-
-    parser.add_argument('--username')
-    parser.add_argument('--password')
-    args = parser.parse_args()
-
-    async with ClientSession() as session:
-        vehicle_api = VehicleAPI(session, args.username, args.password)
-        await vehicle_api.login()
-        await vehicle_api.update_token()
-        vins = await vehicle_api.get_vehicles_vins()
-        for vin in vins:
-            vehicle = Vehicle(vin, vehicle_api)
-            await vehicle.update()
-            _LOGGER.debug(vehicle.__dict__)
-
-
-if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    def get(self, key):
+        if not hasattr(self, key):
+            raise Exception(f"{key} not found")
+        return getattr(self, key)

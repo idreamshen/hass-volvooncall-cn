@@ -4,8 +4,9 @@ from homeassistant import config_entries
 from homeassistant.const import *
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import voluptuous as vol
-from .volvooncall_cn import VehicleAPI, Vehicle, VolvoAPIError
-DOMAIN = "volvooncall_cn"
+from .volvooncall_base import VolvoAPIError
+from .volvooncall_cn import VehicleAPI
+from .volvooncall_cn import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +23,8 @@ class VolvoOnCallCnConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(user_input[CONF_USERNAME])
 
             session = async_get_clientsession(self.hass)
-            volvo_api = VehicleAPI(session=session, username=user_input[CONF_USERNAME], password=user_input[CONF_PASSWORD])
+            volvo_api = VehicleAPI(
+                session=session, username=user_input[CONF_USERNAME], password=user_input[CONF_PASSWORD])
             try:
                 await volvo_api.login()
             except VolvoAPIError as err:

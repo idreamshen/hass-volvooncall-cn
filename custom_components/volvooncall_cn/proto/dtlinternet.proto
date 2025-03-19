@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package dtlinternet;
+
+service DtlInternetService{
+  rpc StreamLastKnownLocations(StreamLastKnownLocationsReq) 
+    returns (stream StreamLastKnownLocationsResp) {}
+}
+
+message StreamLastKnownLocationsReq {
+  string vin = 1;
+}
+
+message otherLocationUnknowData {
+    int32 unknow3 = 1;
+    int32 unknow4 = 2;
+}
+message otherLocations {
+  double longitude = 1;
+  double latitude = 2;
+  otherLocationUnknowData unknow2 = 3;
+
+}
+
+message StreamLastKnownLocationsResp {
+  string vin = 1;
+  double longitude = 2;
+  double latitude = 3;
+  int32 unknow1 = 4;
+  otherLocations other = 5;
+}
