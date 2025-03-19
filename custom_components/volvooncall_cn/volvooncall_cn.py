@@ -5,7 +5,8 @@ import grpc
 import asyncio
 from .volvooncall_base import VehicleBaseAPI, gcj02towgs84
 from .proto.exterior_pb2_grpc import ExteriorServiceStub
-from .proto.exterior_pb2 import GetExteriorReq, GetExteriorResp, ExteriorData
+from .proto.exterior_pb2 import GetExteriorReq, GetExteriorResp, ExteriorStatus
+from .proto.exterior_pb2 import LockStatus, OpenStatus
 from .proto.fuel_pb2_grpc import FuelServiceStub
 from .proto.fuel_pb2 import GetFuelReq, GetFuelResp
 from .proto.invocation_pb2_grpc import InvocationServiceStub
@@ -25,26 +26,16 @@ from .proto.engineremotestart_pb2 import GetEngineRemoteStartReq, GetEngineRemot
 
 _LOGGER = logging.getLogger(__name__)
 
-AAOS_DIGITALVOLVO_HOST = "cepmobtoken.prod.c3.volvocars.com.cn:443"
-AAOS_LBS_VOLVO_HOST = "cepmobtoken.lbs.prod.c3.volvocars.com.cn:443"
+GRPC_DIGITALVOLVO_HOST = "cepmobtoken.prod.c3.volvocars.com.cn:443"
+GRPC_LBS_VOLVO_HOST = "cepmobtoken.lbs.prod.c3.volvocars.com.cn:443"
 USER_AGENT = "vca-android/5.51.1 grpc-java-okhttp/1.68.0"
 MAX_RETRIES = 1
 TIMEOUT = datetime.timedelta(seconds=10)
 DOMAIN = "volvooncall_cn"
 
 
-class AAOSWindowOpenType(object):
-    Open = 1
-    Close = 2
-    OpenCrack = 3
-
-    @staticmethod
-    def isOpen(openType) -> bool:
-        return openType in [AAOSWindowOpenType.Open, AAOSWindowOpenType.OpenCrack]
-
-    @staticmethod
-    def isClose(openType) -> bool:
-        return openType == AAOSWindowOpenType.Close
+def isWindowOpen(status) -> bool:
+    return status == OpenStatus.OPEN_STATUS_OPEN or status == OpenStatus.OPEN_STATUS_AJAR
 
 
 class VehicleAPI(VehicleBaseAPI):
@@ -70,13 +61,13 @@ class VehicleAPI(VehicleBaseAPI):
         if self.channel and self.channel_token == self._vocapi_access_token.strip():
             return
         self.channel_token = self._vocapi_access_token.strip()
-        self.channel = await self.gen_channel(self.channel_token, AAOS_DIGITALVOLVO_HOST)
+        self.channel = await self.gen_channel(self.channel_token, GRPC_DIGITALVOLVO_HOST)
 
     async def get_lbs_channel(self):
         if self.lbs_channel and self.lbs_channel_token == self._vocapi_access_token.strip():
             return
         self.lbs_channel_token = self._vocapi_access_token.strip()
-        self.lbs_channel = await self.gen_channel(self.lbs_channel_token, AAOS_LBS_VOLVO_HOST)
+        self.lbs_channel = await self.gen_channel(self.lbs_channel_token, GRPC_LBS_VOLVO_HOST)
 
     async def get_fuel_status(self, vin) -> GetFuelResp:
         stub = FuelServiceStub(self.channel)
@@ -224,6 +215,7 @@ class Vehicle(object):
         self.rear_left_window_open = False
         self.rear_right_window_open = False
         self.fuel_amount = 0
+        self.tank_lid_open = False
         # self.fuel_amount_level = 0
         self.position = {
             "longitude": 0.0,
@@ -237,23 +229,24 @@ class Vehicle(object):
     async def _parse_exterior(self):
         try:
             exterior_resp: GetExteriorResp = await self._api.get_exterior(self.vin)
-            exterior_data: ExteriorData = exterior_resp.data
-            _LOGGER.debug(exterior_data)
+            exterior_status: ExteriorStatus = exterior_resp.data
+            _LOGGER.debug(exterior_status)
         except Exception as err:
             _LOGGER.error(err)
             return
-        self.car_locked = AAOSWindowOpenType.isClose(exterior_data.lock)
-        self.front_left_door_open = AAOSWindowOpenType.isOpen(exterior_data.frontLeftDoor)
-        self.front_right_door_open = AAOSWindowOpenType.isOpen(exterior_data.frontRightDoor)
-        self.rear_left_door_open = AAOSWindowOpenType.isOpen(exterior_data.rearLeftDoor)
-        self.rear_right_door_open = AAOSWindowOpenType.isOpen(exterior_data.rearRightDoor)
-        self.front_left_window_open = AAOSWindowOpenType.isOpen(exterior_data.frontLeftWindow)
-        self.front_right_window_open = AAOSWindowOpenType.isOpen(exterior_data.frontRightWindow)
-        self.rear_left_window_open = AAOSWindowOpenType.isOpen(exterior_data.rearLeftWindow)
-        self.rear_right_window_open = AAOSWindowOpenType.isOpen(exterior_data.rearRightWindow)
-        self.sunroof_open = AAOSWindowOpenType.isOpen(exterior_data.sunRoof)
-        self.tail_gate_open = exterior_data.tailGate == AAOSWindowOpenType.Open
-        self.hood_open = AAOSWindowOpenType.isOpen(exterior_data.hood)
+        self.car_locked = exterior_status.central_lock == LockStatus.LOCK_STATUS_LOCKED
+        self.front_left_door_open = isWindowOpen(exterior_status.front_left_door)
+        self.front_right_door_open = isWindowOpen(exterior_status.front_right_door)
+        self.rear_left_door_open = isWindowOpen(exterior_status.rear_left_door)
+        self.rear_right_door_open = isWindowOpen(exterior_status.rear_right_door)
+        self.front_left_window_open = isWindowOpen(exterior_status.front_left_window)
+        self.front_right_window_open = isWindowOpen(exterior_status.front_right_window)
+        self.rear_left_window_open = isWindowOpen(exterior_status.rear_left_window)
+        self.rear_right_window_open = isWindowOpen(exterior_status.rear_right_window)
+        self.sunroof_open = isWindowOpen(exterior_status.sunroof)
+        self.tail_gate_open = isWindowOpen(exterior_status.tailgate)
+        self.hood_open = isWindowOpen(exterior_status.hood)
+        self.tank_lid_open = isWindowOpen(exterior_status.tank_lid)
 
     async def _parse_fuel(self):
         try:
@@ -337,10 +330,10 @@ class Vehicle(object):
             _LOGGER.debug(task.result())
 
     async def lock_window(self):
-        await self._api.window_control(self.vin, AAOSWindowOpenType.Close)
+        await self._api.window_control(self.vin, OpenStatus.OPEN_STATUS_CLOSED)
 
     async def unlock_window(self):
-        await self._api.window_control(self.vin, AAOSWindowOpenType.Open)
+        await self._api.window_control(self.vin, OpenStatus.OPEN_STATUS_OPEN)
 
     async def lock_vehicle(self):
         await self._api.door_lock(self.vin)
