@@ -2,7 +2,8 @@
     "domain": "volvooncall_cn",
     "name": "Volvo On Call CN",
     "codeowners": [
-        "@idreamshen"
+      "@idreamshen",
+      "@chliny",
     ],
     "config_flow": true,
     "dependencies": [],
@@ -13,7 +14,7 @@
         "grpcio>=1.67.1",
         "grpcio-tools>=1.67.1"
     ],
-    "version": "0.1.4",
+    "version": "2.0.0",
     "loggers": [
         "volvooncall_cn"
     ]
