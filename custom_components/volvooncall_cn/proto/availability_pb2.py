@@ -24,25 +24,25 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12\x61vailability.proto\x12#services.vehiclestates.availability\"!\n\x12GetAvailabilityReq\x12\x0b\n\x03vin\x18\x02 \x01(\t\"<\n\x14\x41vailabilityDataHead\x12\x12\n\nupdateTime\x18\x01 \x01(\x03\x12\x10\n\x08unknown1\x18\x02 \x01(\x03\"\x82\x02\n\x10\x41vailabilityData\x12G\n\x04head\x18\x01 \x01(\x0b\x32\x39.services.vehiclestates.availability.AvailabilityDataHead\x12Q\n\x12\x65ngineLocalRunning\x18\x03 \x01(\x0e\x32\x35.services.vehiclestates.availability.AvailabilityBool\x12R\n\x12\x65ngineRunningState\x18\x05 \x01(\x0e\x32\x36.services.vehiclestates.availability.AvailabilityState\"g\n\x13GetAvailabilityResp\x12\x0b\n\x03vin\x18\x02 \x01(\t\x12\x43\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x35.services.vehiclestates.availability.AvailabilityData*u\n\x11\x41vailabilityState\x12\x0b\n\x07Unknow1\x10\x00\x12\x0e\n\nNotRunning\x10\x01\x12\x10\n\x0cRuningRecent\x10\x02\x12\x0b\n\x07Unknow2\x10\x03\x12\x0b\n\x07Unknow3\x10\x04\x12\x17\n\x13RunningWithKeyInCar\x10\x05*0\n\x10\x41vailabilityBool\x12\x0b\n\x07Unknow4\x10\x00\x12\x06\n\x02No\x10\x01\x12\x07\n\x03Yes\x10\x02\x32\xa0\x01\n\x13\x41vailabilityService\x12\x88\x01\n\x0fGetAvailability\x12\x37.services.vehiclestates.availability.GetAvailabilityReq\x1a\x38.services.vehiclestates.availability.GetAvailabilityResp\"\x00\x30\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12\x61vailability.proto\x12#services.vehiclestates.availability\"!\n\x12GetAvailabilityReq\x12\x0b\n\x03vin\x18\x02 \x01(\t\"+\n\tTimestamp\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x03\"\xfc\x01\n\x10\x41vailabilityData\x12\x42\n\nupdatetime\x18\x01 \x01(\x0b\x32..services.vehiclestates.availability.Timestamp\x12P\n\x0f\x61vailableStatus\x18\x03 \x01(\x0e\x32\x37.services.vehiclestates.availability.AvailabilityStatus\x12R\n\x11unavailableReason\x18\x04 \x01(\x0e\x32\x37.services.vehiclestates.availability.AvailabilityReason\"g\n\x13GetAvailabilityResp\x12\x0b\n\x03vin\x18\x02 \x01(\t\x12\x43\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x35.services.vehiclestates.availability.AvailabilityData*\x9f\x01\n\x12\x41vailabilityReason\x12\x10\n\x0cUnspecified1\x10\x00\x12\x0e\n\nNoInternet\x10\x01\x12\x13\n\x0fPowerSavingMode\x10\x02\x12\x0c\n\x08\x43\x61rInUse\x10\x03\x12\x1d\n\x19OtaInstallationInProgress\x10\x04\x12\x0b\n\x07Unknow1\x10\x05\x12\x0b\n\x07Unknow2\x10\x06\x12\x0b\n\x07Unknow3\x10\x07*F\n\x12\x41vailabilityStatus\x12\x10\n\x0cUnspecified2\x10\x00\x12\r\n\tAvailable\x10\x01\x12\x0f\n\x0bUnavailable\x10\x02\x32\xa0\x01\n\x13\x41vailabilityService\x12\x88\x01\n\x0fGetAvailability\x12\x37.services.vehiclestates.availability.GetAvailabilityReq\x1a\x38.services.vehiclestates.availability.GetAvailabilityResp\"\x00\x30\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'availability_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_AVAILABILITYSTATE']._serialized_start=522
-  _globals['_AVAILABILITYSTATE']._serialized_end=639
-  _globals['_AVAILABILITYBOOL']._serialized_start=641
-  _globals['_AVAILABILITYBOOL']._serialized_end=689
+  _globals['_AVAILABILITYREASON']._serialized_start=500
+  _globals['_AVAILABILITYREASON']._serialized_end=659
+  _globals['_AVAILABILITYSTATUS']._serialized_start=661
+  _globals['_AVAILABILITYSTATUS']._serialized_end=731
   _globals['_GETAVAILABILITYREQ']._serialized_start=59
   _globals['_GETAVAILABILITYREQ']._serialized_end=92
-  _globals['_AVAILABILITYDATAHEAD']._serialized_start=94
-  _globals['_AVAILABILITYDATAHEAD']._serialized_end=154
-  _globals['_AVAILABILITYDATA']._serialized_start=157
-  _globals['_AVAILABILITYDATA']._serialized_end=415
-  _globals['_GETAVAILABILITYRESP']._serialized_start=417
-  _globals['_GETAVAILABILITYRESP']._serialized_end=520
-  _globals['_AVAILABILITYSERVICE']._serialized_start=692
-  _globals['_AVAILABILITYSERVICE']._serialized_end=852
+  _globals['_TIMESTAMP']._serialized_start=94
+  _globals['_TIMESTAMP']._serialized_end=137
+  _globals['_AVAILABILITYDATA']._serialized_start=140
+  _globals['_AVAILABILITYDATA']._serialized_end=392
+  _globals['_GETAVAILABILITYRESP']._serialized_start=394
+  _globals['_GETAVAILABILITYRESP']._serialized_end=497
+  _globals['_AVAILABILITYSERVICE']._serialized_start=734
+  _globals['_AVAILABILITYSERVICE']._serialized_end=894
 # @@protoc_insertion_point(module_scope)

@@ -5,29 +5,33 @@ from typing import ClassVar as _ClassVar, Mapping as _Mapping, Optional as _Opti
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class AvailabilityState(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+class AvailabilityReason(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
-    Unknow1: _ClassVar[AvailabilityState]
-    NotRunning: _ClassVar[AvailabilityState]
-    RuningRecent: _ClassVar[AvailabilityState]
-    Unknow2: _ClassVar[AvailabilityState]
-    Unknow3: _ClassVar[AvailabilityState]
-    RunningWithKeyInCar: _ClassVar[AvailabilityState]
+    Unspecified1: _ClassVar[AvailabilityReason]
+    NoInternet: _ClassVar[AvailabilityReason]
+    PowerSavingMode: _ClassVar[AvailabilityReason]
+    CarInUse: _ClassVar[AvailabilityReason]
+    OtaInstallationInProgress: _ClassVar[AvailabilityReason]
+    Unknow1: _ClassVar[AvailabilityReason]
+    Unknow2: _ClassVar[AvailabilityReason]
+    Unknow3: _ClassVar[AvailabilityReason]
 
-class AvailabilityBool(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+class AvailabilityStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
-    Unknow4: _ClassVar[AvailabilityBool]
-    No: _ClassVar[AvailabilityBool]
-    Yes: _ClassVar[AvailabilityBool]
-Unknow1: AvailabilityState
-NotRunning: AvailabilityState
-RuningRecent: AvailabilityState
-Unknow2: AvailabilityState
-Unknow3: AvailabilityState
-RunningWithKeyInCar: AvailabilityState
-Unknow4: AvailabilityBool
-No: AvailabilityBool
-Yes: AvailabilityBool
+    Unspecified2: _ClassVar[AvailabilityStatus]
+    Available: _ClassVar[AvailabilityStatus]
+    Unavailable: _ClassVar[AvailabilityStatus]
+Unspecified1: AvailabilityReason
+NoInternet: AvailabilityReason
+PowerSavingMode: AvailabilityReason
+CarInUse: AvailabilityReason
+OtaInstallationInProgress: AvailabilityReason
+Unknow1: AvailabilityReason
+Unknow2: AvailabilityReason
+Unknow3: AvailabilityReason
+Unspecified2: AvailabilityStatus
+Available: AvailabilityStatus
+Unavailable: AvailabilityStatus
 
 class GetAvailabilityReq(_message.Message):
     __slots__ = ("vin",)
@@ -35,23 +39,23 @@ class GetAvailabilityReq(_message.Message):
     vin: str
     def __init__(self, vin: _Optional[str] = ...) -> None: ...
 
-class AvailabilityDataHead(_message.Message):
-    __slots__ = ("updateTime", "unknown1")
-    UPDATETIME_FIELD_NUMBER: _ClassVar[int]
-    UNKNOWN1_FIELD_NUMBER: _ClassVar[int]
-    updateTime: int
-    unknown1: int
-    def __init__(self, updateTime: _Optional[int] = ..., unknown1: _Optional[int] = ...) -> None: ...
+class Timestamp(_message.Message):
+    __slots__ = ("seconds", "nanos")
+    SECONDS_FIELD_NUMBER: _ClassVar[int]
+    NANOS_FIELD_NUMBER: _ClassVar[int]
+    seconds: int
+    nanos: int
+    def __init__(self, seconds: _Optional[int] = ..., nanos: _Optional[int] = ...) -> None: ...
 
 class AvailabilityData(_message.Message):
-    __slots__ = ("head", "engineLocalRunning", "engineRunningState")
-    HEAD_FIELD_NUMBER: _ClassVar[int]
-    ENGINELOCALRUNNING_FIELD_NUMBER: _ClassVar[int]
-    ENGINERUNNINGSTATE_FIELD_NUMBER: _ClassVar[int]
-    head: AvailabilityDataHead
-    engineLocalRunning: AvailabilityBool
-    engineRunningState: AvailabilityState
-    def __init__(self, head: _Optional[_Union[AvailabilityDataHead, _Mapping]] = ..., engineLocalRunning: _Optional[_Union[AvailabilityBool, str]] = ..., engineRunningState: _Optional[_Union[AvailabilityState, str]] = ...) -> None: ...
+    __slots__ = ("updatetime", "availableStatus", "unavailableReason")
+    UPDATETIME_FIELD_NUMBER: _ClassVar[int]
+    AVAILABLESTATUS_FIELD_NUMBER: _ClassVar[int]
+    UNAVAILABLEREASON_FIELD_NUMBER: _ClassVar[int]
+    updatetime: Timestamp
+    availableStatus: AvailabilityStatus
+    unavailableReason: AvailabilityReason
+    def __init__(self, updatetime: _Optional[_Union[Timestamp, _Mapping]] = ..., availableStatus: _Optional[_Union[AvailabilityStatus, str]] = ..., unavailableReason: _Optional[_Union[AvailabilityReason, str]] = ...) -> None: ...
 
 class GetAvailabilityResp(_message.Message):
     __slots__ = ("vin", "data")

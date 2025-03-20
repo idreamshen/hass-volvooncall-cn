@@ -10,30 +10,32 @@ message GetAvailabilityReq {
   string vin = 2;
 }
 
-message AvailabilityDataHead {
-  int64 updateTime = 1;
-  int64 unknown1 = 2;
+message Timestamp {
+  int64 seconds = 1;
+  int64 nanos = 2;
 }
 
-enum AvailabilityState {
-    Unknow1 = 0;
-    NotRunning = 1;
-    RuningRecent = 2;
-    Unknow2 = 3;
-    Unknow3 = 4;
-    RunningWithKeyInCar = 5;
+enum AvailabilityReason {
+    Unspecified1 = 0;
+    NoInternet = 1;
+    PowerSavingMode = 2;
+    CarInUse = 3;
+    OtaInstallationInProgress = 4;
+    Unknow1 = 5;
+    Unknow2 = 6;
+    Unknow3 = 7;
 }
 
-enum AvailabilityBool {
-    Unknow4 = 0;
-    No = 1;
-    Yes = 2;
+enum AvailabilityStatus {
+    Unspecified2 = 0;
+    Available = 1;
+    Unavailable = 2;
 }
 
 message AvailabilityData {
-  AvailabilityDataHead head = 1;
-  AvailabilityBool engineLocalRunning = 3;
-  AvailabilityState engineRunningState = 5;
+  Timestamp updatetime = 1;
+  AvailabilityStatus availableStatus = 3;
+  AvailabilityReason unavailableReason = 4;
 }
 
 message GetAvailabilityResp {

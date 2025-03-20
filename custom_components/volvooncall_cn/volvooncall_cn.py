@@ -17,11 +17,11 @@ from .proto.invocation_pb2 import LockReq, LockResp
 from .proto.odometer_pb2_grpc import OdometerServiceStub
 from .proto.odometer_pb2 import GetOdometerReq, GetOdometerResp
 from .proto.availability_pb2_grpc import AvailabilityServiceStub
-from .proto.availability_pb2 import GetAvailabilityReq, GetAvailabilityResp, AvailabilityBool
+from .proto.availability_pb2 import GetAvailabilityReq, GetAvailabilityResp, AvailabilityStatus, AvailabilityReason
 from .proto.dtlinternet_pb2_grpc import DtlInternetServiceStub
 from .proto.dtlinternet_pb2 import StreamLastKnownLocationsReq, StreamLastKnownLocationsResp
 from .proto.engineremotestart_pb2_grpc import EngineRemoteStartServiceStub
-from .proto.engineremotestart_pb2 import GetEngineRemoteStartReq, GetEngineRemoteStartResp, EngineRemoteStartType
+from .proto.engineremotestart_pb2 import GetEngineRemoteStartReq, GetEngineRemoteStartResp, EngineRunningStatus
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -278,7 +278,7 @@ class Vehicle(object):
         except Exception as err:
             _LOGGER.error(err)
             return
-        self.engine_running = availability_data.engineLocalRunning == AvailabilityBool.Yes
+        self.engine_running = availability_data.availableStatus == AvailabilityStatus.Unavailable and availability_data.unavailableReason == AvailabilityReason.CarInUse
 
     async def _parse_location(self):
         try:
@@ -304,9 +304,9 @@ class Vehicle(object):
         except Exception as err:
             _LOGGER.error(err)
             return
-        if engine_data.engineStarting == EngineRemoteStartType.Yes or \
-                engine_data.engineStarted in [EngineRemoteStartType.Yes, EngineRemoteStartType.Starting]:
+        if engine_data.engineRunningStatus in [EngineRunningStatus.Starting, EngineRunningStatus.Running]:
             self.engine_remote_running = True
+            self.engine_running = True
         else:
             self.engine_remote_running = False
 

@@ -10,21 +10,44 @@ message GetEngineRemoteStartReq{
   string vin = 2;
 }
 
-message GetEngineRemoteStartDataHead {
-  int64 updateTime = 1;
-  int64 unknown1 = 2;
+message Timestamp {
+  int64 seconds = 1;
+  int64 nanos = 2;
 }
-enum EngineRemoteStartType {
-  Unknow1 = 0;
-  No = 1;
+enum EngineErrorType {
+  Unspecifid1 = 0;
+  ExceededMaxAttempt = 1;
+  CarUnLocked = 2;
+  KeyInCar = 3;
+  DoorOpen = 4;
+  HoodOpen = 5;
+  IncorrectGear = 6;
+  PersonInCar = 7;
+  PedalPressed = 8;
+  LowFuel = 9;
+  LowBattery = 10;
+  LowBatteryAndFuel = 11;
+  ChargerPlugged = 12;
+  EngineCoolantFault = 13;
+  BatteryCoolantFault = 14;
+  ServiceRequired = 15;
+  Other = 16;
+}
+
+enum EngineRunningStatus {
+  Unspecifid2 = 0;
+  Off = 1;
   Starting = 2;
-  Yes = 3;
+  Running = 3;
+  Stopping = 4;
 }
 
 message GetEngineRemoteStartData {
-  GetEngineRemoteStartDataHead head = 1;
-  EngineRemoteStartType engineStarted = 2;
-  EngineRemoteStartType engineStarting = 3;
+  Timestamp updateTime = 1;
+  EngineRunningStatus engineRunningStatus = 2;
+  EngineErrorType engineError = 3;
+  int64 engineStartTime = 4;
+  int64 engineEndTime = 5;
 
 }
 message GetEngineRemoteStartResp {
