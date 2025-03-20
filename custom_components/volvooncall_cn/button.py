@@ -20,9 +20,8 @@ async def async_setup_entry(
 
     buttons = []
     for idx, ent in enumerate(coordinator.data):
-        if ent.get("isAaos"):
-            buttons.append(VolvoFlashButton(coordinator, idx, "flash_button"))
-            buttons.append(VolvoHonkFlashButton(coordinator, idx, "honk_flash_button"))
+        buttons.append(VolvoFlashButton(coordinator, idx, "flash_button"))
+        buttons.append(VolvoHonkFlashButton(coordinator, idx, "honk_flash_button"))
 
     async_add_entities(buttons)
 
