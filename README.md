@@ -32,7 +32,7 @@ Homeassistant volvooncall 中国区插件
 | `device_tracker.{vin}_position`               | 位置             |                                          |
 | `device_tracker.{vin}_position_wgs84`         | 位置 wgs84 坐标  | 在 ha 默认地图上展示车辆时，请使用此实体 |
 | `button.{vin}_flash`                          | 闪灯             |                                          |
-| `button.lvyzbakd9mp110817_honk_and_flash`     | 闪灯鸣笛         |                                          |
+| `button.{vin}_honk_and_flash`                 | 闪灯鸣笛         |                                          |
 
 # 测试车型
 - 2021 S60
