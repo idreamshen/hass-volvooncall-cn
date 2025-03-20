@@ -3,7 +3,7 @@
     "name": "Volvo On Call CN",
     "codeowners": [
       "@idreamshen",
-      "@chliny",
+      "@chliny"
     ],
     "config_flow": true,
     "dependencies": [],
