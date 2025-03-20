@@ -53,3 +53,6 @@ HACS -> 集成 -> 右上角三个点 -> 自定义存储库
 # 效果预览
 <img src="images/screenshot-20230729-011246.png" alt="" width="50%"/>
 <img src="images/screenshot-20230729-011320.png" alt="" width="50%"/>
+
+# 特别鸣谢
+- [@chliny](https://github.com/chliny) 实现了新版车机云端协议对接
