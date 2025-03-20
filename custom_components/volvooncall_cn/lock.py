@@ -33,7 +33,8 @@ async def async_setup_entry(
     entities = []
     for idx, ent in enumerate(coordinator.data):
         entities.append(VolvoSensor(coordinator, idx, "car_lock"))
-        entities.append(VolvoWindowSensor(coordinator, idx, "window_lock"))
+        if ent.get("isAaos"):
+            entities.append(VolvoWindowSensor(coordinator, idx, "window_lock"))
 
     async_add_entities(entities)
 

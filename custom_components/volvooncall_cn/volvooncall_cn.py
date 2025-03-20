@@ -192,9 +192,10 @@ class VehicleAPI(VehicleBaseAPI):
 
 
 class Vehicle(object):
-    def __init__(self, vin, api):
+    def __init__(self, vin, api, isAaos):
         self.vin = vin
         self._api = api
+        self.isAaos = isAaos
 
         self.series_name = ""
         self.model_name = ""

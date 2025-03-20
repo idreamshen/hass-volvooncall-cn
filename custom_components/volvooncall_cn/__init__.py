@@ -85,10 +85,12 @@ class VolvoCoordinator(DataUpdateCoordinator):
                 # data retrieved from API.
                 await self.volvo_api.login()
                 await self.volvo_api.update_token()
-                vins = await self.volvo_api.get_vehicles_vins()
+                vinVehicleMaps = await self.volvo_api.get_vehicles_vins()
                 vehicles = []
-                for vin in vins:
-                    vehicle = Vehicle(vin, self.volvo_api)
+                for vin, vehicleInfos in vinVehicleMaps.items():
+                    modelYear = int(vehicleInfos.get("modelYear", 2020))
+                    isAaos = modelYear >= 2022
+                    vehicle = Vehicle(vin, self.volvo_api, isAaos)
                     await vehicle.update()
                     vehicles.append(vehicle)
 

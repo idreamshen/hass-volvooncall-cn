@@ -3,7 +3,6 @@ import logging
 from datetime import timedelta
 from urllib.parse import urljoin
 import asyncio
-import argparse
 import time
 import json
 from datetime import datetime
@@ -119,7 +118,6 @@ class VehicleBaseAPI:
             "phoneNumber": "0086" + self._username
         })
 
-        logging.debug(result)
         if not result:
             return
 
@@ -157,16 +155,19 @@ class VehicleBaseAPI:
     async def get_vehicles(self):
         url = urljoin(DIGITALVOLVO_URL, "/app/account/vehicles/api/v1/owner/listBindCar")
         result = await self.digitalvolvo_get(url, {})
-        if result['success']:
-            return result['data']
+        if not result:
+            return []
+        if result.get('success', False):
+            return result.get('data', [])
 
         return []
 
     async def get_vehicles_vins(self):
         data = await self.get_vehicles()
-        vins = []
+        vins = {}
         for k in data:
-            vins.append(k["vinCode"])
+            vinCode = k["vinCode"]
+            vins[vinCode] = k
 
         return vins
 
