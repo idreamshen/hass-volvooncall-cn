@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+
+package services.vehiclestates.odometer;
+
+service OdometerService{
+  rpc GetOdometer(GetOdometerReq) returns(stream GetOdometerResp){}
+}
+
+message GetOdometerReq {
+  string vin = 2;
+}
+
+
+message odometerDataHead {
+  int64 updateTime = 1;
+  int64 unknown1 = 2;
+}
+
+message odometerData {
+  odometerDataHead head = 1;
+  int64 totalDistance = 2;
+  float TMDistance = 3;
+  float TADistance = 4;
+  int32 TMAvgSpeed = 5;
+  int32 TAAvgSpeed = 6;
+}
+
+message GetOdometerResp{
+  string vin = 2;
+  odometerData data = 3;
+}

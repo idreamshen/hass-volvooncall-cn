@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package services.vehiclestates.fuel;
+
+service FuelService{
+    rpc GetFuel(GetFuelReq) returns(stream GetFuelResp) {}
+}
+
+
+message GetFuelReq {
+  string vin = 2;
+}
+
+message FuelDataTimeInfo {
+  int32 lastRunTime = 1;
+  int32 unknown1 = 2;
+}
+
+message FuelData{
+  FuelDataTimeInfo timeInfo = 1;
+  int32 distanceToEmpty =2;
+  double TMFuelAvgConsum = 3;
+  float fuelAmount=4;
+  int32 unknown2 =5;
+  double ATFuleAvgConsum =6;
+}
+
+message GetFuelResp {
+  string vin = 2;
+  FuelData data = 3;
+}
+

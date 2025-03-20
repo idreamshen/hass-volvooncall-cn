@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+
+package services.vehiclestates.exterior;
+
+service ExteriorService{
+   rpc GetExterior(GetExteriorReq) returns(stream GetExteriorResp) {}
+}
+
+message GetExteriorReq{
+  string vin = 2;
+}
+
+message TimeStamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+message ExteriorStatus {
+    TimeStamp timestamp = 1;
+    LockStatus central_lock = 2; //车锁状态
+    OpenStatus front_left_door = 3;//车门状态
+    OpenStatus front_right_door = 4;
+    OpenStatus rear_left_door = 5;
+    OpenStatus rear_right_door = 6;
+    OpenStatus front_left_window = 7;//车窗状态
+    OpenStatus front_right_window = 8;
+    OpenStatus rear_left_window = 9;
+    OpenStatus rear_right_window = 10;
+    OpenStatus hood = 11; //引擎盖状态
+    OpenStatus tailgate = 12; //后尾箱状态
+    OpenStatus tank_lid = 13; //油箱盖状态
+    OpenStatus sunroof = 14; //天窗状态
+    int32 unknow1 = 15;
+}
+
+message GetExteriorResp {
+  string vin = 1;
+  ExteriorStatus data = 3;
+}
+
+enum LockStatus {
+    LOCK_STATUS_UNSPECIFIED = 0;
+    LOCK_STATUS_UNLOCKED = 1;
+    LOCK_STATUS_LOCKED = 2;
+}
+
+
+enum OpenStatus {
+    OPEN_STATUS_UNSPECIFIED = 0;
+    OPEN_STATUS_OPEN = 1;
+    OPEN_STATUS_CLOSED = 2;
+    OPEN_STATUS_AJAR = 3;
+}
+

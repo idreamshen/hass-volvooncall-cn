@@ -14,8 +14,8 @@ from homeassistant.helpers.update_coordinator import (
 
 from . import VolvoCoordinator, VolvoEntity
 from . import metaMap
+from .volvooncall_cn import DOMAIN
 
-DOMAIN = "volvooncall_cn"
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -32,6 +32,7 @@ async def async_setup_entry(
 
     async_add_entities(entities)
 
+
 class VolvoSensor(VolvoEntity, TrackerEntity):
     def __init__(self, coordinator, idx, metaMapKey):
         """Pass coordinator to CoordinatorEntity."""
@@ -45,9 +46,9 @@ class VolvoSensor(VolvoEntity, TrackerEntity):
     @property
     def latitude(self):
         """Handle updated data from the coordinator."""
-        return self.coordinator.data[self.idx].toMap()[self.metaMapKey]["latitude"]
+        return self.coordinator.data[self.idx].get(self.metaMapKey)["latitude"]
 
     @property
     def longitude(self):
         """Handle updated data from the coordinator."""
-        return self.coordinator.data[self.idx].toMap()[self.metaMapKey]["longitude"]
+        return self.coordinator.data[self.idx].get(self.metaMapKey)["longitude"]

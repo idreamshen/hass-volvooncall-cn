@@ -16,8 +16,8 @@ from homeassistant.helpers.update_coordinator import (
 
 from . import VolvoCoordinator, VolvoEntity
 from . import metaMap
+from .volvooncall_cn import DOMAIN
 
-DOMAIN = "volvooncall_cn"
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -29,8 +29,8 @@ async def async_setup_entry(
 
     entities = []
     for idx, ent in enumerate(coordinator.data):
-        entities.append(VolvoSensor(coordinator, idx, "car_lock_open"))
-        entities.append(VolvoSensor(coordinator, idx, "remote_door_unlock"))
+        # entities.append(VolvoSensor(coordinator, idx, "car_lock_open"))
+        # entities.append(VolvoSensor(coordinator, idx, "remote_door_unlock"))
         entities.append(VolvoSensor(coordinator, idx, "tail_gate_open"))
         entities.append(VolvoSensor(coordinator, idx, "rear_right_door_open"))
         entities.append(VolvoSensor(coordinator, idx, "rear_left_door_open"))
@@ -45,6 +45,7 @@ async def async_setup_entry(
         entities.append(VolvoSensor(coordinator, idx, "sunroof_open"))
 
     async_add_entities(entities)
+
 
 class VolvoSensor(VolvoEntity, BinarySensorEntity):
     """An entity using CoordinatorEntity.
@@ -63,4 +64,4 @@ class VolvoSensor(VolvoEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Handle updated data from the coordinator."""
-        return self.coordinator.data[self.idx].toMap()[self.metaMapKey]
+        return self.coordinator.data[self.idx].get(self.metaMapKey)

@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package invocation;
+
+service InvocationService {
+  rpc WindowControl(windowControlReq) returns(stream windowControlResp) {}
+  rpc EngineStart(EngineStartReq) returns(stream EngineStartResp) {}
+  rpc HonkFlash(HonkFlashReq) returns(stream HonkFlashResp) {}
+  rpc Lock(LockReq) returns (stream LockResp) {}
+  rpc Unlock(LockReq) returns (stream LockResp) {}
+}
+
+message invocationHead{
+  string vin = 1;
+}
+
+message windowControlReq {
+  invocationHead head = 1;
+  int32 openType = 2;
+}
+
+message windowData {
+  string deviceid = 1;
+  string vin = 2;
+  int64 timestamp = 3;
+}
+
+message invocationData {
+  string deviceid = 1;
+  string vin = 2;
+  int32 openType = 3;
+  int64 timestamp = 5;
+}
+
+message windowControlResp {
+  repeated invocationData data = 1;
+}
+
+enum EngineStartType {
+  Stop = 0;
+  Start = 1;
+}
+
+message EngineStartReq {
+  invocationHead head = 1;
+  EngineStartType openType = 2;
+  int32 startDurationMin = 3;
+}
+
+message EngineStartResp {
+  repeated invocationData data = 1;
+}
+
+message HonkFlashReq{
+  invocationHead head = 1;
+  int32 onlyFlash = 2; //2: 仅闪灯; 默认: 闪灯鸣笛
+}
+
+message HonkFlashResp {
+  repeated invocationData data = 1;
+}
+
+message LockReq{
+  invocationHead  head = 1;
+  int32 lockType = 2;
+}
+
+message LockResp{
+  repeated invocationData data = 1;
+}
