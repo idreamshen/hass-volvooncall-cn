@@ -7,6 +7,7 @@ from homeassistant.components.switch import SwitchEntity
 
 from . import VolvoCoordinator, VolvoEntity
 from .volvooncall_cn import DOMAIN
+from .volvooncall_base import MAX_RETRIES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,18 +31,20 @@ class VolvoEngineSwitch(VolvoEntity, SwitchEntity):
     def __init__(self, coordinator, idx, metaMapKey):
         super().__init__(coordinator, idx, metaMapKey)
 
+    async def _update_status(self, is_on):
+        for _ in range(MAX_RETRIES):
+            await asyncio.sleep(2)
+            await self.coordinator.async_refresh()
+            if self.is_on == is_on:
+                break
+
     async def async_turn_on(self) -> None:
-        if self.is_on:
-            _LOGGER.debug("engine already running")
-            return
         await self.coordinator.data[self.idx].engine_start()
-        await asyncio.sleep(2)
-        await self.coordinator.async_request_refresh()
+        await self._update_status(True)
 
     async def async_turn_off(self) -> None:
         await self.coordinator.data[self.idx].engine_stop()
-        await asyncio.sleep(2)
-        await self.coordinator.async_request_refresh()
+        await self._update_status(False)
 
     @property
     def is_on(self):
