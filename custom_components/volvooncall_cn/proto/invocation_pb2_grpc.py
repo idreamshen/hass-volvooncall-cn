@@ -59,6 +59,16 @@ class InvocationServiceStub(object):
             request_serializer=invocation__pb2.LockReq.SerializeToString,
             response_deserializer=invocation__pb2.LockResp.FromString,
             _registered_method=True)
+        self.TailgateControl = channel.unary_stream(
+            '/invocation.InvocationService/TailgateControl',
+            request_serializer=invocation__pb2.TailgateControlReq.SerializeToString,
+            response_deserializer=invocation__pb2.TailgateControlResp.FromString,
+            _registered_method=True)
+        self.SunroofControl = channel.unary_stream(
+            '/invocation.InvocationService/SunroofControl',
+            request_serializer=invocation__pb2.SunroofControlReq.SerializeToString,
+            response_deserializer=invocation__pb2.SunroofControlResp.FromString,
+            _registered_method=True)
 
 
 class InvocationServiceServicer(object):
@@ -94,6 +104,18 @@ class InvocationServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def TailgateControl(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SunroofControl(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_InvocationServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -121,6 +143,16 @@ def add_InvocationServiceServicer_to_server(servicer, server):
             servicer.Unlock,
             request_deserializer=invocation__pb2.LockReq.FromString,
             response_serializer=invocation__pb2.LockResp.SerializeToString,
+        ),
+        'TailgateControl': grpc.unary_stream_rpc_method_handler(
+            servicer.TailgateControl,
+            request_deserializer=invocation__pb2.TailgateControlReq.FromString,
+            response_serializer=invocation__pb2.TailgateControlResp.SerializeToString,
+        ),
+        'SunroofControl': grpc.unary_stream_rpc_method_handler(
+            servicer.SunroofControl,
+            request_deserializer=invocation__pb2.SunroofControlReq.FromString,
+            response_serializer=invocation__pb2.SunroofControlResp.SerializeToString,
         ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -259,6 +291,60 @@ class InvocationService(object):
             '/invocation.InvocationService/Unlock',
             invocation__pb2.LockReq.SerializeToString,
             invocation__pb2.LockResp.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def TailgateControl(request,
+                        target,
+                        options=(),
+                        channel_credentials=None,
+                        call_credentials=None,
+                        insecure=False,
+                        compression=None,
+                        wait_for_ready=None,
+                        timeout=None,
+                        metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/invocation.InvocationService/TailgateControl',
+            invocation__pb2.TailgateControlReq.SerializeToString,
+            invocation__pb2.TailgateControlResp.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SunroofControl(request,
+                       target,
+                       options=(),
+                       channel_credentials=None,
+                       call_credentials=None,
+                       insecure=False,
+                       compression=None,
+                       wait_for_ready=None,
+                       timeout=None,
+                       metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/invocation.InvocationService/SunroofControl',
+            invocation__pb2.SunroofControlReq.SerializeToString,
+            invocation__pb2.SunroofControlResp.FromString,
             options,
             channel_credentials,
             insecure,

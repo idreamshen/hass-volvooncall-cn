@@ -11,19 +11,20 @@ message GetOdometerReq {
   string vin = 2;
 }
 
-
-message odometerDataHead {
-  int64 updateTime = 1;
-  int64 unknown1 = 2;
+message Timestamp {
+  int64 seconds = 1;
+  int64 nanos = 2;
 }
 
 message odometerData {
-  odometerDataHead head = 1;
-  int64 totalDistance = 2;
-  float TMDistance = 3;
-  float TADistance = 4;
-  int32 TMAvgSpeed = 5;
-  int32 TAAvgSpeed = 6;
+  Timestamp updateTime = 1;
+  int64 odometerMeters = 2;
+  float tripMeterManualKm = 3;
+  float tripMeterAutomaticKm = 4;
+  int32 averageSpeedKmPerHour = 5;
+  int32 averageSpeedKmPerHourAutomatic = 6;
+  int32 tripMeterSinceChargeKm = 7;
+  int32 averageSpeedKmPerHourSinceCharge = 8;
 }
 
 message GetOdometerResp{

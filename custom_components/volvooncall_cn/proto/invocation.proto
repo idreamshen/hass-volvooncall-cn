@@ -8,47 +8,60 @@ service InvocationService {
   rpc HonkFlash(HonkFlashReq) returns(stream HonkFlashResp) {}
   rpc Lock(LockReq) returns (stream LockResp) {}
   rpc Unlock(LockReq) returns (stream LockResp) {}
+  rpc TailgateControl(TailgateControlReq) returns (stream TailgateControlResp) {}
+  rpc SunroofControl(SunroofControlReq) returns(stream SunroofControlResp) {}
 }
 
 message invocationHead{
   string vin = 1;
 }
 
-message windowControlReq {
-  invocationHead head = 1;
-  int32 openType = 2;
+enum invocationControlType {
+    UNSPECIFIED = 0;
+    OPEN = 1;
+    CLOSE = 2;
 }
 
-message windowData {
-  string deviceid = 1;
-  string vin = 2;
-  int64 timestamp = 3;
+enum invocationStatus {
+  UNKNOWN_ERROR = 0;
+  SENT = 1;
+  CAR_OFFLINE = 2;
+  DELIVERED = 4;
+  DELIVERY_TIMEOUT = 5;
+  SUCCESS = 6;
+  RESPONSE_TIMEOUT = 7;
+  UNKNOWN_CAR_ERROR = 8;
+  NOT_ALLOWED_PRIVACY_ENABLED = 9;
+  NOT_ALLOWED_WRONG_USAGE_MODE = 10;
+  INVOCATION_SPECIFIC_ERROR = 11;
+  NOT_ALLOWED_CONFLICTING_INVOCATION = 12;
 }
 
 message invocationData {
   string deviceid = 1;
   string vin = 2;
-  int32 openType = 3;
+  invocationStatus status = 3;
+  string msg = 4;
   int64 timestamp = 5;
 }
 
-message windowControlResp {
-  repeated invocationData data = 1;
+message windowControlReq {
+  invocationHead head = 1;
+  invocationControlType openType = 2;
 }
 
-enum EngineStartType {
-  Stop = 0;
-  Start = 1;
+message windowControlResp {
+  invocationData data = 1;
 }
 
 message EngineStartReq {
   invocationHead head = 1;
-  EngineStartType openType = 2;
+  bool isStart = 2;
   int32 startDurationMin = 3;
 }
 
 message EngineStartResp {
-  repeated invocationData data = 1;
+  invocationData data = 1;
 }
 
 message HonkFlashReq{
@@ -57,7 +70,7 @@ message HonkFlashReq{
 }
 
 message HonkFlashResp {
-  repeated invocationData data = 1;
+  invocationData data = 1;
 }
 
 message LockReq{
@@ -66,5 +79,22 @@ message LockReq{
 }
 
 message LockResp{
-  repeated invocationData data = 1;
+  invocationData data = 1;
+}
+
+message TailgateControlReq{
+  invocationHead head = 1;
+  invocationControlType type = 2;
+}
+
+message TailgateControlResp{
+  invocationData data = 1;
+}
+
+message SunroofControlReq{
+  invocationHead head = 1;
+  invocationControlType type = 2;
+}
+message SunroofControlResp{
+  invocationData data = 1;
 }
