@@ -242,7 +242,7 @@ metaMap = {
     "honk_flash_button": {
         "name": "Honk And Flash",
         "device_class": None,
-        "icon": "mdi:bugle",
+        "icon": "mdi:alarm-light",
         "unit": "",
     },
     "engine_duration_number": {
@@ -256,7 +256,13 @@ metaMap = {
         "device_class": None,
         "icon": "mdi:engine-outline",
         "unit": "",
-    }
+    },
+    "honk_button": {
+        "name": "Honk",
+        "device_class": None,
+        "icon": "mdi:bugle",
+        "unit": "",
+    },
 }
 
 
