@@ -35,7 +35,7 @@ Homeassistant volvooncall 中国区插件
 | `button.{vin}_honk_and_flash`                 | 闪灯鸣笛         |                                                           |
 | `button.{vin}_honk`                           | 鸣笛             |                                                           |
 | `switch.{vin}_sunroof_control`                | 远程控制天窗     | 仅在遮阳帘已打开时支持远程打开天窗（新款车型支持）        |
-| `switch.{vin}__tailgate_control`              | 远程控制尾箱     | 打开尾箱会同时解锁车辆,请注意及时锁车（新款车型支持）     |
+| `switch.{vin}_tailgate_control`              | 远程控制尾箱     | 打开尾箱会同时解锁车辆,请注意及时锁车（新款车型支持）     |
 
 # 测试车型
 - 2021 S60
