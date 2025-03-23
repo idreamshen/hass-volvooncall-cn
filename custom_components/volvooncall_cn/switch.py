@@ -21,15 +21,19 @@ async def async_setup_entry(
     coordinator: VolvoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     switchs = []
-    for idx, _ in enumerate(coordinator.data):
+    for idx, ent in enumerate(coordinator.data):
         switchs.append(VolvoEngineSwitch(coordinator, idx, "engine_switch"))
+        if ent.get("isAaos"):
+            switchs.append(VolvoTailgateSwitch(coordinator, idx, "tail_gate_switch"))
+            switchs.append(VolvoSunroofSwitch(coordinator, idx, "sunroof_switch"))
 
     async_add_entities(switchs)
 
 
-class VolvoEngineSwitch(VolvoEntity, SwitchEntity):
-    def __init__(self, coordinator, idx, metaMapKey):
-        super().__init__(coordinator, idx, metaMapKey)
+class VolvoSwitchEntity(VolvoEntity, SwitchEntity):
+    def __init__(self, coordinator, idx, metaKey, checkMetaKeys):
+        super().__init__(coordinator, idx, metaKey)
+        self.checkMetaKeys = checkMetaKeys
 
     async def _update_status(self, is_on):
         for _ in range(MAX_RETRIES):
@@ -37,6 +41,20 @@ class VolvoEngineSwitch(VolvoEntity, SwitchEntity):
             await self.coordinator.async_refresh()
             if self.is_on == is_on:
                 break
+
+    @property
+    def is_on(self):
+        coordinator = self.coordinator.data[self.idx]
+        for key in self.checkMetaKeys:
+            if coordinator.get(key):
+                return True
+        return False
+
+
+class VolvoEngineSwitch(VolvoSwitchEntity):
+    def __init__(self, coordinator, idx, metaKey):
+        check_meta_keys = ["engine_running", "engine_remote_running"]
+        super().__init__(coordinator, idx, metaKey, check_meta_keys)
 
     async def async_turn_on(self) -> None:
         await self.coordinator.data[self.idx].engine_start()
@@ -46,7 +64,32 @@ class VolvoEngineSwitch(VolvoEntity, SwitchEntity):
         await self.coordinator.data[self.idx].engine_stop()
         await self._update_status(False)
 
-    @property
-    def is_on(self):
+
+class VolvoTailgateSwitch(VolvoSwitchEntity):
+    def __init__(self, coordinator, idx, metaKey):
+        check_keys = ["tail_gate_open"]
+        super().__init__(coordinator, idx, metaKey, check_keys)
+
+    async def async_turn_on(self) -> None:
         coordinator = self.coordinator.data[self.idx]
-        return coordinator.get("engine_running") or coordinator.get("engine_remote_running")
+        await coordinator.unlock_vehicle()
+        await coordinator.tail_gate_control_open()
+        await self._update_status(True)
+
+    async def async_turn_off(self) -> None:
+        await self.coordinator.data[self.idx].tail_gate_control_close()
+        await self._update_status(False)
+
+
+class VolvoSunroofSwitch(VolvoSwitchEntity):
+    def __init__(self, coordinator, idx, metaKey):
+        check_keys = ["sunroof_open"]
+        super().__init__(coordinator, idx, metaKey, check_keys)
+
+    async def async_turn_on(self) -> None:
+        await self.coordinator.data[self.idx].sunroof_control_open()
+        await self._update_status(True)
+
+    async def async_turn_off(self) -> None:
+        await self.coordinator.data[self.idx].sunroof_control_close()
+        await self._update_status(False)

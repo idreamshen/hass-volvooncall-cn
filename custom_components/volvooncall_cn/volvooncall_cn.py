@@ -209,6 +209,30 @@ class VehicleAPI(VehicleBaseAPI):
             break
         return res
 
+    async def sunroof_contorl(self, vin: str, controlType: invocationControlType):
+        stub = InvocationServiceStub(self.channel)
+        req_header = invocationHead(vin=vin)
+        req = SunroofControlReq(head=req_header, type=controlType)
+        metadata: list = [("vin", vin)]
+        res: invocationCommResp = invocationCommResp()
+        for res in stub.SunroofControl(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug(res)
+            self.raise_invocation_fail(res.data.status)
+            break
+        return
+
+    async def tailgate_contorl(self, vin: str, controlType: invocationControlType):
+        stub = InvocationServiceStub(self.channel)
+        req_header = invocationHead(vin=vin)
+        req = TailgateControlReq(head=req_header, type=controlType)
+        metadata: list = [("vin", vin)]
+        res: invocationCommResp = invocationCommResp()
+        for res in stub.TailgateControl(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug(res)
+            self.raise_invocation_fail(res.data.status)
+            break
+        return
+
 
 class Vehicle(object):
     def __init__(self, vin, api, isAaos):
@@ -404,3 +428,15 @@ class Vehicle(object):
         if not hasattr(self, key):
             raise Exception(f"{key} not found")
         return getattr(self, key)
+
+    async def tail_gate_control_open(self):
+        await self._api.tailgate_contorl(self.vin, invocationControlType.OPEN)
+
+    async def tail_gate_control_close(self):
+        await self._api.tailgate_contorl(self.vin, invocationControlType.CLOSE)
+
+    async def sunroof_control_open(self):
+        await self._api.sunroof_contorl(self.vin, invocationControlType.OPEN)
+
+    async def sunroof_control_close(self):
+        await self._api.sunroof_contorl(self.vin, invocationControlType.CLOSE)

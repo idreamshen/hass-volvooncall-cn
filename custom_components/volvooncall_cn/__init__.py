@@ -133,7 +133,7 @@ metaMap = {
     "tail_gate_open": {
         "name": "Tail gate",
         "device_class": "door",
-        "icon": "",
+        "icon": "mdi:car-back",
         "unit": "",
     },
     "rear_right_door_open": {
@@ -169,7 +169,7 @@ metaMap = {
     "sunroof_open": {
         "name": "Sunroof",
         "device_class": "window",
-        "icon": "",
+        "icon": "mdi:home-roof",
         "unit": "",
     },
     "engine_running": {
@@ -261,6 +261,18 @@ metaMap = {
         "name": "Honk",
         "device_class": None,
         "icon": "mdi:bugle",
+        "unit": "",
+    },
+    "tail_gate_switch": {
+        "name": "Tailgate control",
+        "device_class": None,
+        "icon": "mdi:car-back",
+        "unit": "",
+    },
+    "sunroof_switch": {
+        "name": "Sunroof control",
+        "device_class": None,
+        "icon": "mdi:home-roof",
         "unit": "",
     },
 }
