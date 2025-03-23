@@ -215,6 +215,10 @@ class Vehicle(object):
         self.front_right_window_open = False
         self.rear_left_window_open = False
         self.rear_right_window_open = False
+        self.front_left_window_open_ajar = False
+        self.front_right_window_open_ajar = False
+        self.rear_left_window_open_ajar = False
+        self.rear_right_window_open_ajar = False
         self.fuel_amount = 0
         self.tank_lid_open = False
         # self.fuel_amount_level = 0
@@ -240,14 +244,24 @@ class Vehicle(object):
         self.front_right_door_open = isWindowOpen(exterior_status.front_right_door)
         self.rear_left_door_open = isWindowOpen(exterior_status.rear_left_door)
         self.rear_right_door_open = isWindowOpen(exterior_status.rear_right_door)
-        self.front_left_window_open = isWindowOpen(exterior_status.front_left_window)
-        self.front_right_window_open = isWindowOpen(exterior_status.front_right_window)
-        self.rear_left_window_open = isWindowOpen(exterior_status.rear_left_window)
-        self.rear_right_window_open = isWindowOpen(exterior_status.rear_right_window)
         self.sunroof_open = isWindowOpen(exterior_status.sunroof)
         self.tail_gate_open = isWindowOpen(exterior_status.tailgate)
         self.hood_open = isWindowOpen(exterior_status.hood)
         self.tank_lid_open = isWindowOpen(exterior_status.tank_lid)
+        window_sensors = ["front_left_window", "front_right_window", "rear_left_window", "rear_right_window"]
+        for window_sensor in window_sensors:
+            status = getattr(exterior_status, window_sensor)
+            openkey = window_sensor + "_open"
+            ajarkey = window_sensor + "_open_ajar"
+            if status == OpenStatus.OPEN_STATUS_OPEN:
+                setattr(self, openkey, True)
+                setattr(self, ajarkey, False)
+            elif status == OpenStatus.OPEN_STATUS_AJAR:
+                setattr(self, openkey, True)
+                setattr(self, ajarkey, True)
+            else:
+                setattr(self, openkey, False)
+                setattr(self, ajarkey, False)
 
     async def _parse_fuel(self):
         try:

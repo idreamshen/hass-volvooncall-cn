@@ -38,10 +38,10 @@ async def async_setup_entry(
         entities.append(VolvoSensor(coordinator, idx, "front_left_door_open"))
         entities.append(VolvoSensor(coordinator, idx, "hood_open"))
         entities.append(VolvoSensor(coordinator, idx, "engine_running"))
-        entities.append(VolvoSensor(coordinator, idx, "front_left_window_open"))
-        entities.append(VolvoSensor(coordinator, idx, "front_right_window_open"))
-        entities.append(VolvoSensor(coordinator, idx, "rear_left_window_open"))
-        entities.append(VolvoSensor(coordinator, idx, "rear_right_window_open"))
+        entities.append(VolvoWindowSensor(coordinator, idx, "front_left_window_open"))
+        entities.append(VolvoWindowSensor(coordinator, idx, "front_right_window_open"))
+        entities.append(VolvoWindowSensor(coordinator, idx, "rear_left_window_open"))
+        entities.append(VolvoWindowSensor(coordinator, idx, "rear_right_window_open"))
         entities.append(VolvoSensor(coordinator, idx, "sunroof_open"))
 
     async_add_entities(entities)
@@ -65,3 +65,13 @@ class VolvoSensor(VolvoEntity, BinarySensorEntity):
     def is_on(self) -> bool | None:
         """Handle updated data from the coordinator."""
         return self.coordinator.data[self.idx].get(self.metaMapKey)
+
+
+class VolvoWindowSensor(VolvoSensor):
+    def __init__(self, coordinator, idx, metaMapKey):
+        super().__init__(coordinator, idx, metaMapKey)
+
+    @property
+    def extra_state_attributes(self):
+        metaKey = self.metaMapKey + "_ajar"
+        return {"open_status_ajar": self.coordinator.data[self.idx].get(metaKey)}
