@@ -3,13 +3,13 @@ syntax = "proto3";
 package invocation;
 
 service InvocationService {
-  rpc WindowControl(windowControlReq) returns(stream windowControlResp) {}
-  rpc EngineStart(EngineStartReq) returns(stream EngineStartResp) {}
-  rpc HonkFlash(HonkFlashReq) returns(stream HonkFlashResp) {}
-  rpc Lock(LockReq) returns (stream LockResp) {}
-  rpc Unlock(LockReq) returns (stream LockResp) {}
-  rpc TailgateControl(TailgateControlReq) returns (stream TailgateControlResp) {}
-  rpc SunroofControl(SunroofControlReq) returns(stream SunroofControlResp) {}
+  rpc WindowControl(windowControlReq) returns(stream invocationCommResp) {}
+  rpc EngineStart(EngineStartReq) returns(stream invocationCommResp) {}
+  rpc HonkFlash(HonkFlashReq) returns(stream invocationCommResp) {}
+  rpc Lock(LockReq) returns (stream invocationCommResp) {}
+  rpc Unlock(UnlockReq) returns (stream invocationCommResp) {}
+  rpc TailgateControl(TailgateControlReq) returns (stream invocationCommResp) {}
+  rpc SunroofControl(SunroofControlReq) returns(stream invocationCommResp) {}
 }
 
 message invocationHead{
@@ -45,13 +45,13 @@ message invocationData {
   int64 timestamp = 5;
 }
 
+message invocationCommResp {
+  invocationData data = 1;
+}
+
 message windowControlReq {
   invocationHead head = 1;
   invocationControlType openType = 2;
-}
-
-message windowControlResp {
-  invocationData data = 1;
 }
 
 message EngineStartReq {
@@ -60,26 +60,35 @@ message EngineStartReq {
   int32 startDurationMin = 3;
 }
 
-message EngineStartResp {
-  invocationData data = 1;
+enum HonkFlashType {
+  HONK_AND_FLASH = 0;
+  HONK = 1;
+  FLASH = 2;
 }
 
 message HonkFlashReq{
   invocationHead head = 1;
-  int32 onlyFlash = 2; //2: 仅闪灯; 默认: 闪灯鸣笛
+  HonkFlashType honkFlashType = 2;
 }
 
-message HonkFlashResp {
-  invocationData data = 1;
+enum LockType {
+    LOCK = 0;
+    LOCK_REDUCED_GUARD = 1;
 }
 
 message LockReq{
   invocationHead  head = 1;
-  int32 lockType = 2;
+  LockType lockType = 2;
 }
 
-message LockResp{
-  invocationData data = 1;
+enum UnlockType {
+  UNLOCK_UNSPECIFIED = 0;
+  TRUNK_ONLY = 1;
+}
+
+message UnlockReq {
+  invocationHead  head = 1;
+  UnlockType unlockType = 2;
 }
 
 message TailgateControlReq{
@@ -87,14 +96,7 @@ message TailgateControlReq{
   invocationControlType type = 2;
 }
 
-message TailgateControlResp{
-  invocationData data = 1;
-}
-
 message SunroofControlReq{
   invocationHead head = 1;
   invocationControlType type = 2;
-}
-message SunroofControlResp{
-  invocationData data = 1;
 }

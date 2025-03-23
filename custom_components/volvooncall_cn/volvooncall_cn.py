@@ -1,6 +1,5 @@
 import logging
 import datetime
-import os
 import grpc
 import asyncio
 from .volvooncall_base import VehicleBaseAPI, gcj02towgs84
@@ -10,11 +9,14 @@ from .proto.exterior_pb2 import LockStatus, OpenStatus
 from .proto.fuel_pb2_grpc import FuelServiceStub
 from .proto.fuel_pb2 import GetFuelReq, GetFuelResp
 from .proto.invocation_pb2_grpc import InvocationServiceStub
-from .proto.invocation_pb2 import invocationHead, invocationStatus, invocationControlType
-from .proto.invocation_pb2 import windowControlReq, windowControlResp
-from .proto.invocation_pb2 import EngineStartReq, EngineStartResp
-from .proto.invocation_pb2 import HonkFlashReq, HonkFlashResp
-from .proto.invocation_pb2 import LockReq, LockResp
+from .proto.invocation_pb2 import invocationHead, invocationStatus, invocationControlType, invocationCommResp
+from .proto.invocation_pb2 import windowControlReq
+from .proto.invocation_pb2 import EngineStartReq
+from .proto.invocation_pb2 import HonkFlashReq, HonkFlashType
+from .proto.invocation_pb2 import LockReq, LockType
+from .proto.invocation_pb2 import UnlockReq, UnlockType
+from .proto.invocation_pb2 import TailgateControlReq
+from .proto.invocation_pb2 import SunroofControlReq
 from .proto.odometer_pb2_grpc import OdometerServiceStub
 from .proto.odometer_pb2 import GetOdometerReq, GetOdometerResp
 from .proto.availability_pb2_grpc import AvailabilityServiceStub
@@ -127,7 +129,7 @@ class VehicleAPI(VehicleBaseAPI):
         req_header = invocationHead(vin=vin)
         req = windowControlReq(head=req_header, openType=opentype)
         metadata: list = [("vin", vin)]
-        res: windowControlResp = windowControlResp()
+        res: invocationCommResp = invocationCommResp()
         for res in stub.WindowControl(req, metadata=metadata, timeout=TIMEOUT.seconds):
             _LOGGER.debug(res)
             self.raise_invocation_fail(res.data.status)
@@ -154,21 +156,19 @@ class VehicleAPI(VehicleBaseAPI):
         else:
             req = EngineStartReq(head=req_header, isStart=isStart)
         metadata: list = [("vin", vin)]
-        res: EngineStartResp = EngineStartResp()
+        res: invocationCommResp = invocationCommResp()
         for res in stub.EngineStart(req, metadata=metadata, timeout=TIMEOUT.seconds):
             _LOGGER.debug(res)
             self.raise_invocation_fail(res.data.status)
             break
         return
 
-    async def honk_flash_control(self, vin, is_only_flash: bool):
+    async def honk_flash_control(self, vin, honk_flash_type: HonkFlashType):
         stub = InvocationServiceStub(self.channel)
         req_header = invocationHead(vin=vin)
-        req = HonkFlashReq(head=req_header)
-        if is_only_flash:
-            req.onlyFlash = 2
+        req = HonkFlashReq(head=req_header, honkFlashType=honk_flash_type)
         metadata: list = [("vin", vin)]
-        res: HonkFlashResp = HonkFlashResp()
+        res: invocationCommResp = invocationCommResp()
         for res in stub.HonkFlash(req, metadata=metadata, timeout=TIMEOUT.seconds):
             _LOGGER.debug(res)
             self.raise_invocation_fail(res.data.status)
@@ -178,9 +178,9 @@ class VehicleAPI(VehicleBaseAPI):
     async def door_lock(self, vin):
         stub = InvocationServiceStub(self.channel)
         req_header = invocationHead(vin=vin)
-        req = LockReq(head=req_header, lockType=1)
+        req = LockReq(head=req_header, lockType=LockType.LOCK_REDUCED_GUARD)
         metadata: list = [("vin", vin)]
-        res: LockResp = LockResp()
+        res: invocationCommResp = invocationCommResp()
         for res in stub.Lock(req, metadata=metadata, timeout=TIMEOUT.seconds):
             _LOGGER.debug(res)
             self.raise_invocation_fail(res.data.status)
@@ -190,9 +190,9 @@ class VehicleAPI(VehicleBaseAPI):
     async def door_unlock(self, vin):
         stub = InvocationServiceStub(self.channel)
         req_header = invocationHead(vin=vin)
-        req = LockReq(head=req_header, lockType=2)
+        req = UnlockReq(head=req_header, unlockType=UnlockType.TRUNK_ONLY)
         metadata: list = [("vin", vin)]
-        res: LockResp = LockResp()
+        res: invocationCommResp = invocationCommResp()
         for res in stub.Unlock(req, metadata=metadata, timeout=TIMEOUT.seconds):
             _LOGGER.debug(res)
             self.raise_invocation_fail(res.data.status)
@@ -293,7 +293,7 @@ class Vehicle(object):
             _LOGGER.error(err)
             return
         self.fuel_amount = round(fuel_data.fuelAmount, 2)
-        self.distance_to_empty = fuel_data.distanceToEmpty
+        self.distance_to_empty = fuel_data.distanceToEmptyKm
         # self.fuel_amount_level = fuel_data.fluelHalfLevel / 5
 
     async def _parse_odometer(self):
@@ -304,7 +304,7 @@ class Vehicle(object):
         except Exception as err:
             _LOGGER.error(err)
             return
-        self.odo_meter = odometer_data.totalDistance / 1000
+        self.odo_meter = odometer_data.odometerMeters / 1000
 
     async def _parse_availability(self):
         try:
@@ -380,10 +380,13 @@ class Vehicle(object):
         await self._api.door_unlock(self.vin)
 
     async def flash(self):
-        await self._api.honk_flash_control(self.vin, True)
+        await self._api.honk_flash_control(self.vin, HonkFlashType.FLASH)
 
     async def honk_and_flash(self):
-        await self._api.honk_flash_control(self.vin, False)
+        await self._api.honk_flash_control(self.vin, HonkFlashType.HONK_AND_FLASH)
+
+    async def honk(self):
+        await self._api.honk_flash_control(self.vin, HonkFlashType.HONK)
 
     async def engine_start(self):
         await self._api.engine_control(self.vin, True)

@@ -37,37 +37,37 @@ class InvocationServiceStub(object):
         self.WindowControl = channel.unary_stream(
             '/invocation.InvocationService/WindowControl',
             request_serializer=invocation__pb2.windowControlReq.SerializeToString,
-            response_deserializer=invocation__pb2.windowControlResp.FromString,
+            response_deserializer=invocation__pb2.invocationCommResp.FromString,
             _registered_method=True)
         self.EngineStart = channel.unary_stream(
             '/invocation.InvocationService/EngineStart',
             request_serializer=invocation__pb2.EngineStartReq.SerializeToString,
-            response_deserializer=invocation__pb2.EngineStartResp.FromString,
+            response_deserializer=invocation__pb2.invocationCommResp.FromString,
             _registered_method=True)
         self.HonkFlash = channel.unary_stream(
             '/invocation.InvocationService/HonkFlash',
             request_serializer=invocation__pb2.HonkFlashReq.SerializeToString,
-            response_deserializer=invocation__pb2.HonkFlashResp.FromString,
+            response_deserializer=invocation__pb2.invocationCommResp.FromString,
             _registered_method=True)
         self.Lock = channel.unary_stream(
             '/invocation.InvocationService/Lock',
             request_serializer=invocation__pb2.LockReq.SerializeToString,
-            response_deserializer=invocation__pb2.LockResp.FromString,
+            response_deserializer=invocation__pb2.invocationCommResp.FromString,
             _registered_method=True)
         self.Unlock = channel.unary_stream(
             '/invocation.InvocationService/Unlock',
-            request_serializer=invocation__pb2.LockReq.SerializeToString,
-            response_deserializer=invocation__pb2.LockResp.FromString,
+            request_serializer=invocation__pb2.UnlockReq.SerializeToString,
+            response_deserializer=invocation__pb2.invocationCommResp.FromString,
             _registered_method=True)
         self.TailgateControl = channel.unary_stream(
             '/invocation.InvocationService/TailgateControl',
             request_serializer=invocation__pb2.TailgateControlReq.SerializeToString,
-            response_deserializer=invocation__pb2.TailgateControlResp.FromString,
+            response_deserializer=invocation__pb2.invocationCommResp.FromString,
             _registered_method=True)
         self.SunroofControl = channel.unary_stream(
             '/invocation.InvocationService/SunroofControl',
             request_serializer=invocation__pb2.SunroofControlReq.SerializeToString,
-            response_deserializer=invocation__pb2.SunroofControlResp.FromString,
+            response_deserializer=invocation__pb2.invocationCommResp.FromString,
             _registered_method=True)
 
 
@@ -122,37 +122,37 @@ def add_InvocationServiceServicer_to_server(servicer, server):
         'WindowControl': grpc.unary_stream_rpc_method_handler(
             servicer.WindowControl,
             request_deserializer=invocation__pb2.windowControlReq.FromString,
-            response_serializer=invocation__pb2.windowControlResp.SerializeToString,
+            response_serializer=invocation__pb2.invocationCommResp.SerializeToString,
         ),
         'EngineStart': grpc.unary_stream_rpc_method_handler(
             servicer.EngineStart,
             request_deserializer=invocation__pb2.EngineStartReq.FromString,
-            response_serializer=invocation__pb2.EngineStartResp.SerializeToString,
+            response_serializer=invocation__pb2.invocationCommResp.SerializeToString,
         ),
         'HonkFlash': grpc.unary_stream_rpc_method_handler(
             servicer.HonkFlash,
             request_deserializer=invocation__pb2.HonkFlashReq.FromString,
-            response_serializer=invocation__pb2.HonkFlashResp.SerializeToString,
+            response_serializer=invocation__pb2.invocationCommResp.SerializeToString,
         ),
         'Lock': grpc.unary_stream_rpc_method_handler(
             servicer.Lock,
             request_deserializer=invocation__pb2.LockReq.FromString,
-            response_serializer=invocation__pb2.LockResp.SerializeToString,
+            response_serializer=invocation__pb2.invocationCommResp.SerializeToString,
         ),
         'Unlock': grpc.unary_stream_rpc_method_handler(
             servicer.Unlock,
-            request_deserializer=invocation__pb2.LockReq.FromString,
-            response_serializer=invocation__pb2.LockResp.SerializeToString,
+            request_deserializer=invocation__pb2.UnlockReq.FromString,
+            response_serializer=invocation__pb2.invocationCommResp.SerializeToString,
         ),
         'TailgateControl': grpc.unary_stream_rpc_method_handler(
             servicer.TailgateControl,
             request_deserializer=invocation__pb2.TailgateControlReq.FromString,
-            response_serializer=invocation__pb2.TailgateControlResp.SerializeToString,
+            response_serializer=invocation__pb2.invocationCommResp.SerializeToString,
         ),
         'SunroofControl': grpc.unary_stream_rpc_method_handler(
             servicer.SunroofControl,
             request_deserializer=invocation__pb2.SunroofControlReq.FromString,
-            response_serializer=invocation__pb2.SunroofControlResp.SerializeToString,
+            response_serializer=invocation__pb2.invocationCommResp.SerializeToString,
         ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -182,7 +182,7 @@ class InvocationService(object):
             target,
             '/invocation.InvocationService/WindowControl',
             invocation__pb2.windowControlReq.SerializeToString,
-            invocation__pb2.windowControlResp.FromString,
+            invocation__pb2.invocationCommResp.FromString,
             options,
             channel_credentials,
             insecure,
@@ -209,7 +209,7 @@ class InvocationService(object):
             target,
             '/invocation.InvocationService/EngineStart',
             invocation__pb2.EngineStartReq.SerializeToString,
-            invocation__pb2.EngineStartResp.FromString,
+            invocation__pb2.invocationCommResp.FromString,
             options,
             channel_credentials,
             insecure,
@@ -236,7 +236,7 @@ class InvocationService(object):
             target,
             '/invocation.InvocationService/HonkFlash',
             invocation__pb2.HonkFlashReq.SerializeToString,
-            invocation__pb2.HonkFlashResp.FromString,
+            invocation__pb2.invocationCommResp.FromString,
             options,
             channel_credentials,
             insecure,
@@ -263,7 +263,7 @@ class InvocationService(object):
             target,
             '/invocation.InvocationService/Lock',
             invocation__pb2.LockReq.SerializeToString,
-            invocation__pb2.LockResp.FromString,
+            invocation__pb2.invocationCommResp.FromString,
             options,
             channel_credentials,
             insecure,
@@ -289,8 +289,8 @@ class InvocationService(object):
             request,
             target,
             '/invocation.InvocationService/Unlock',
-            invocation__pb2.LockReq.SerializeToString,
-            invocation__pb2.LockResp.FromString,
+            invocation__pb2.UnlockReq.SerializeToString,
+            invocation__pb2.invocationCommResp.FromString,
             options,
             channel_credentials,
             insecure,
@@ -317,7 +317,7 @@ class InvocationService(object):
             target,
             '/invocation.InvocationService/TailgateControl',
             invocation__pb2.TailgateControlReq.SerializeToString,
-            invocation__pb2.TailgateControlResp.FromString,
+            invocation__pb2.invocationCommResp.FromString,
             options,
             channel_credentials,
             insecure,
@@ -344,7 +344,7 @@ class InvocationService(object):
             target,
             '/invocation.InvocationService/SunroofControl',
             invocation__pb2.SunroofControlReq.SerializeToString,
-            invocation__pb2.SunroofControlResp.FromString,
+            invocation__pb2.invocationCommResp.FromString,
             options,
             channel_credentials,
             insecure,

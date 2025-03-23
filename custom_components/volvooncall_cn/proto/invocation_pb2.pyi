@@ -25,6 +25,22 @@ class invocationStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     NOT_ALLOWED_WRONG_USAGE_MODE: _ClassVar[invocationStatus]
     INVOCATION_SPECIFIC_ERROR: _ClassVar[invocationStatus]
     NOT_ALLOWED_CONFLICTING_INVOCATION: _ClassVar[invocationStatus]
+
+class HonkFlashType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    HONK_AND_FLASH: _ClassVar[HonkFlashType]
+    HONK: _ClassVar[HonkFlashType]
+    FLASH: _ClassVar[HonkFlashType]
+
+class LockType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    LOCK: _ClassVar[LockType]
+    LOCK_REDUCED_GUARD: _ClassVar[LockType]
+
+class UnlockType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    UNLOCK_UNSPECIFIED: _ClassVar[UnlockType]
+    TRUNK_ONLY: _ClassVar[UnlockType]
 UNSPECIFIED: invocationControlType
 OPEN: invocationControlType
 CLOSE: invocationControlType
@@ -40,6 +56,13 @@ NOT_ALLOWED_PRIVACY_ENABLED: invocationStatus
 NOT_ALLOWED_WRONG_USAGE_MODE: invocationStatus
 INVOCATION_SPECIFIC_ERROR: invocationStatus
 NOT_ALLOWED_CONFLICTING_INVOCATION: invocationStatus
+HONK_AND_FLASH: HonkFlashType
+HONK: HonkFlashType
+FLASH: HonkFlashType
+LOCK: LockType
+LOCK_REDUCED_GUARD: LockType
+UNLOCK_UNSPECIFIED: UnlockType
+TRUNK_ONLY: UnlockType
 
 class invocationHead(_message.Message):
     __slots__ = ("vin",)
@@ -61,6 +84,12 @@ class invocationData(_message.Message):
     timestamp: int
     def __init__(self, deviceid: _Optional[str] = ..., vin: _Optional[str] = ..., status: _Optional[_Union[invocationStatus, str]] = ..., msg: _Optional[str] = ..., timestamp: _Optional[int] = ...) -> None: ...
 
+class invocationCommResp(_message.Message):
+    __slots__ = ("data",)
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    data: invocationData
+    def __init__(self, data: _Optional[_Union[invocationData, _Mapping]] = ...) -> None: ...
+
 class windowControlReq(_message.Message):
     __slots__ = ("head", "openType")
     HEAD_FIELD_NUMBER: _ClassVar[int]
@@ -68,12 +97,6 @@ class windowControlReq(_message.Message):
     head: invocationHead
     openType: invocationControlType
     def __init__(self, head: _Optional[_Union[invocationHead, _Mapping]] = ..., openType: _Optional[_Union[invocationControlType, str]] = ...) -> None: ...
-
-class windowControlResp(_message.Message):
-    __slots__ = ("data",)
-    DATA_FIELD_NUMBER: _ClassVar[int]
-    data: invocationData
-    def __init__(self, data: _Optional[_Union[invocationData, _Mapping]] = ...) -> None: ...
 
 class EngineStartReq(_message.Message):
     __slots__ = ("head", "isStart", "startDurationMin")
@@ -85,39 +108,29 @@ class EngineStartReq(_message.Message):
     startDurationMin: int
     def __init__(self, head: _Optional[_Union[invocationHead, _Mapping]] = ..., isStart: bool = ..., startDurationMin: _Optional[int] = ...) -> None: ...
 
-class EngineStartResp(_message.Message):
-    __slots__ = ("data",)
-    DATA_FIELD_NUMBER: _ClassVar[int]
-    data: invocationData
-    def __init__(self, data: _Optional[_Union[invocationData, _Mapping]] = ...) -> None: ...
-
 class HonkFlashReq(_message.Message):
-    __slots__ = ("head", "onlyFlash")
+    __slots__ = ("head", "honkFlashType")
     HEAD_FIELD_NUMBER: _ClassVar[int]
-    ONLYFLASH_FIELD_NUMBER: _ClassVar[int]
+    HONKFLASHTYPE_FIELD_NUMBER: _ClassVar[int]
     head: invocationHead
-    onlyFlash: int
-    def __init__(self, head: _Optional[_Union[invocationHead, _Mapping]] = ..., onlyFlash: _Optional[int] = ...) -> None: ...
-
-class HonkFlashResp(_message.Message):
-    __slots__ = ("data",)
-    DATA_FIELD_NUMBER: _ClassVar[int]
-    data: invocationData
-    def __init__(self, data: _Optional[_Union[invocationData, _Mapping]] = ...) -> None: ...
+    honkFlashType: HonkFlashType
+    def __init__(self, head: _Optional[_Union[invocationHead, _Mapping]] = ..., honkFlashType: _Optional[_Union[HonkFlashType, str]] = ...) -> None: ...
 
 class LockReq(_message.Message):
     __slots__ = ("head", "lockType")
     HEAD_FIELD_NUMBER: _ClassVar[int]
     LOCKTYPE_FIELD_NUMBER: _ClassVar[int]
     head: invocationHead
-    lockType: int
-    def __init__(self, head: _Optional[_Union[invocationHead, _Mapping]] = ..., lockType: _Optional[int] = ...) -> None: ...
+    lockType: LockType
+    def __init__(self, head: _Optional[_Union[invocationHead, _Mapping]] = ..., lockType: _Optional[_Union[LockType, str]] = ...) -> None: ...
 
-class LockResp(_message.Message):
-    __slots__ = ("data",)
-    DATA_FIELD_NUMBER: _ClassVar[int]
-    data: invocationData
-    def __init__(self, data: _Optional[_Union[invocationData, _Mapping]] = ...) -> None: ...
+class UnlockReq(_message.Message):
+    __slots__ = ("head", "unlockType")
+    HEAD_FIELD_NUMBER: _ClassVar[int]
+    UNLOCKTYPE_FIELD_NUMBER: _ClassVar[int]
+    head: invocationHead
+    unlockType: UnlockType
+    def __init__(self, head: _Optional[_Union[invocationHead, _Mapping]] = ..., unlockType: _Optional[_Union[UnlockType, str]] = ...) -> None: ...
 
 class TailgateControlReq(_message.Message):
     __slots__ = ("head", "type")
@@ -127,12 +140,6 @@ class TailgateControlReq(_message.Message):
     type: invocationControlType
     def __init__(self, head: _Optional[_Union[invocationHead, _Mapping]] = ..., type: _Optional[_Union[invocationControlType, str]] = ...) -> None: ...
 
-class TailgateControlResp(_message.Message):
-    __slots__ = ("data",)
-    DATA_FIELD_NUMBER: _ClassVar[int]
-    data: invocationData
-    def __init__(self, data: _Optional[_Union[invocationData, _Mapping]] = ...) -> None: ...
-
 class SunroofControlReq(_message.Message):
     __slots__ = ("head", "type")
     HEAD_FIELD_NUMBER: _ClassVar[int]
@@ -140,9 +147,3 @@ class SunroofControlReq(_message.Message):
     head: invocationHead
     type: invocationControlType
     def __init__(self, head: _Optional[_Union[invocationHead, _Mapping]] = ..., type: _Optional[_Union[invocationControlType, str]] = ...) -> None: ...
-
-class SunroofControlResp(_message.Message):
-    __slots__ = ("data",)
-    DATA_FIELD_NUMBER: _ClassVar[int]
-    data: invocationData
-    def __init__(self, data: _Optional[_Union[invocationData, _Mapping]] = ...) -> None: ...
