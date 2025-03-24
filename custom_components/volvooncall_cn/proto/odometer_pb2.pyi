@@ -10,29 +10,33 @@ class GetOdometerReq(_message.Message):
     vin: str
     def __init__(self, vin: _Optional[str] = ...) -> None: ...
 
-class odometerDataHead(_message.Message):
-    __slots__ = ("updateTime", "unknown1")
-    UPDATETIME_FIELD_NUMBER: _ClassVar[int]
-    UNKNOWN1_FIELD_NUMBER: _ClassVar[int]
-    updateTime: int
-    unknown1: int
-    def __init__(self, updateTime: _Optional[int] = ..., unknown1: _Optional[int] = ...) -> None: ...
+class Timestamp(_message.Message):
+    __slots__ = ("seconds", "nanos")
+    SECONDS_FIELD_NUMBER: _ClassVar[int]
+    NANOS_FIELD_NUMBER: _ClassVar[int]
+    seconds: int
+    nanos: int
+    def __init__(self, seconds: _Optional[int] = ..., nanos: _Optional[int] = ...) -> None: ...
 
 class odometerData(_message.Message):
-    __slots__ = ("head", "totalDistance", "TMDistance", "TADistance", "TMAvgSpeed", "TAAvgSpeed")
-    HEAD_FIELD_NUMBER: _ClassVar[int]
-    TOTALDISTANCE_FIELD_NUMBER: _ClassVar[int]
-    TMDISTANCE_FIELD_NUMBER: _ClassVar[int]
-    TADISTANCE_FIELD_NUMBER: _ClassVar[int]
-    TMAVGSPEED_FIELD_NUMBER: _ClassVar[int]
-    TAAVGSPEED_FIELD_NUMBER: _ClassVar[int]
-    head: odometerDataHead
-    totalDistance: int
-    TMDistance: float
-    TADistance: float
-    TMAvgSpeed: int
-    TAAvgSpeed: int
-    def __init__(self, head: _Optional[_Union[odometerDataHead, _Mapping]] = ..., totalDistance: _Optional[int] = ..., TMDistance: _Optional[float] = ..., TADistance: _Optional[float] = ..., TMAvgSpeed: _Optional[int] = ..., TAAvgSpeed: _Optional[int] = ...) -> None: ...
+    __slots__ = ("updateTime", "odometerMeters", "tripMeterManualKm", "tripMeterAutomaticKm", "averageSpeedKmPerHour", "averageSpeedKmPerHourAutomatic", "tripMeterSinceChargeKm", "averageSpeedKmPerHourSinceCharge")
+    UPDATETIME_FIELD_NUMBER: _ClassVar[int]
+    ODOMETERMETERS_FIELD_NUMBER: _ClassVar[int]
+    TRIPMETERMANUALKM_FIELD_NUMBER: _ClassVar[int]
+    TRIPMETERAUTOMATICKM_FIELD_NUMBER: _ClassVar[int]
+    AVERAGESPEEDKMPERHOUR_FIELD_NUMBER: _ClassVar[int]
+    AVERAGESPEEDKMPERHOURAUTOMATIC_FIELD_NUMBER: _ClassVar[int]
+    TRIPMETERSINCECHARGEKM_FIELD_NUMBER: _ClassVar[int]
+    AVERAGESPEEDKMPERHOURSINCECHARGE_FIELD_NUMBER: _ClassVar[int]
+    updateTime: Timestamp
+    odometerMeters: int
+    tripMeterManualKm: float
+    tripMeterAutomaticKm: float
+    averageSpeedKmPerHour: int
+    averageSpeedKmPerHourAutomatic: int
+    tripMeterSinceChargeKm: int
+    averageSpeedKmPerHourSinceCharge: int
+    def __init__(self, updateTime: _Optional[_Union[Timestamp, _Mapping]] = ..., odometerMeters: _Optional[int] = ..., tripMeterManualKm: _Optional[float] = ..., tripMeterAutomaticKm: _Optional[float] = ..., averageSpeedKmPerHour: _Optional[int] = ..., averageSpeedKmPerHourAutomatic: _Optional[int] = ..., tripMeterSinceChargeKm: _Optional[int] = ..., averageSpeedKmPerHourSinceCharge: _Optional[int] = ...) -> None: ...
 
 class GetOdometerResp(_message.Message):
     __slots__ = ("vin", "data")

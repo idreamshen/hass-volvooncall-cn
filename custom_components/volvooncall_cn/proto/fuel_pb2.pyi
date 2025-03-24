@@ -10,29 +10,29 @@ class GetFuelReq(_message.Message):
     vin: str
     def __init__(self, vin: _Optional[str] = ...) -> None: ...
 
-class FuelDataTimeInfo(_message.Message):
-    __slots__ = ("lastRunTime", "unknown1")
-    LASTRUNTIME_FIELD_NUMBER: _ClassVar[int]
-    UNKNOWN1_FIELD_NUMBER: _ClassVar[int]
-    lastRunTime: int
-    unknown1: int
-    def __init__(self, lastRunTime: _Optional[int] = ..., unknown1: _Optional[int] = ...) -> None: ...
+class Timestamp(_message.Message):
+    __slots__ = ("seconds", "nanos")
+    SECONDS_FIELD_NUMBER: _ClassVar[int]
+    NANOS_FIELD_NUMBER: _ClassVar[int]
+    seconds: int
+    nanos: int
+    def __init__(self, seconds: _Optional[int] = ..., nanos: _Optional[int] = ...) -> None: ...
 
 class FuelData(_message.Message):
-    __slots__ = ("timeInfo", "distanceToEmpty", "TMFuelAvgConsum", "fuelAmount", "unknown2", "ATFuleAvgConsum")
-    TIMEINFO_FIELD_NUMBER: _ClassVar[int]
-    DISTANCETOEMPTY_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("updateTime", "distanceToEmptyKm", "TMFuelAvgConsum", "fuelAmount", "distanceToEmptyMiles", "ATFuleAvgConsum")
+    UPDATETIME_FIELD_NUMBER: _ClassVar[int]
+    DISTANCETOEMPTYKM_FIELD_NUMBER: _ClassVar[int]
     TMFUELAVGCONSUM_FIELD_NUMBER: _ClassVar[int]
     FUELAMOUNT_FIELD_NUMBER: _ClassVar[int]
-    UNKNOWN2_FIELD_NUMBER: _ClassVar[int]
+    DISTANCETOEMPTYMILES_FIELD_NUMBER: _ClassVar[int]
     ATFULEAVGCONSUM_FIELD_NUMBER: _ClassVar[int]
-    timeInfo: FuelDataTimeInfo
-    distanceToEmpty: int
+    updateTime: Timestamp
+    distanceToEmptyKm: int
     TMFuelAvgConsum: float
     fuelAmount: float
-    unknown2: int
+    distanceToEmptyMiles: int
     ATFuleAvgConsum: float
-    def __init__(self, timeInfo: _Optional[_Union[FuelDataTimeInfo, _Mapping]] = ..., distanceToEmpty: _Optional[int] = ..., TMFuelAvgConsum: _Optional[float] = ..., fuelAmount: _Optional[float] = ..., unknown2: _Optional[int] = ..., ATFuleAvgConsum: _Optional[float] = ...) -> None: ...
+    def __init__(self, updateTime: _Optional[_Union[Timestamp, _Mapping]] = ..., distanceToEmptyKm: _Optional[int] = ..., TMFuelAvgConsum: _Optional[float] = ..., fuelAmount: _Optional[float] = ..., distanceToEmptyMiles: _Optional[int] = ..., ATFuleAvgConsum: _Optional[float] = ...) -> None: ...
 
 class GetFuelResp(_message.Message):
     __slots__ = ("vin", "data")

@@ -18,6 +18,7 @@ import logging
 from . import VolvoCoordinator, VolvoEntity
 from . import metaMap
 from .volvooncall_cn import DOMAIN
+from .volvooncall_base import MAX_RETRIES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,21 +59,22 @@ class VolvoSensor(VolvoEntity, LockEntity):
         """Handle updated data from the coordinator."""
         return self.coordinator.data[self.idx].get("car_locked")
 
+    async def _update_status(self, is_locked):
+        for _ in range(MAX_RETRIES):
+            await asyncio.sleep(1)
+            await self.coordinator.async_refresh()
+            if self.is_locked == is_locked:
+                break
+
     async def async_lock(self, **kwargs: Any) -> None:
         """Lock the car."""
-        data = self.coordinator.data[self.idx]
-        if data.get("engine_running"):
-            raise Exception("Engine running!  Prohibited to lock the car")
         await self.coordinator.data[self.idx].lock_vehicle()
-        await self.coordinator.async_request_refresh()
+        await self._update_status(True)
 
     async def async_unlock(self, **kwargs: Any) -> None:
         """Unlock the car."""
-        data = self.coordinator.data[self.idx]
-        if data.get("engine_running"):
-            raise Exception("Engine running!  Prohibited to unlock the car")
         await self.coordinator.data[self.idx].unlock_vehicle()
-        await self.coordinator.async_request_refresh()
+        await self._update_status(False)
 
 
 class VolvoWindowSensor(VolvoEntity, LockEntity):
@@ -80,7 +82,7 @@ class VolvoWindowSensor(VolvoEntity, LockEntity):
         super().__init__(coordinator, idx, metaMapKey)
 
     @property
-    def is_locked(self) -> bool | None:
+    def is_locked(self) -> bool:
         data = self.coordinator.data[self.idx]
         window_keys = ["front_left_window_open", "front_right_window_open",
                        "rear_right_window_open", "rear_left_window_open"]
@@ -91,18 +93,17 @@ class VolvoWindowSensor(VolvoEntity, LockEntity):
                 return False
         return True
 
+    async def _update_status(self, is_locked):
+        for _ in range(MAX_RETRIES):
+            __ = await asyncio.sleep(5)
+            __ = await self.coordinator.async_refresh()
+            if self.is_locked == is_locked:
+                break
+
     async def async_lock(self, **kwargs: Any) -> None:
-        data = self.coordinator.data[self.idx]
-        if data.get("engine_running"):
-            raise Exception("Engine running!  Prohibited to lock windows")
         await self.coordinator.data[self.idx].lock_window()
-        await asyncio.sleep(2)
-        await self.coordinator.async_request_refresh()
+        await self._update_status(True)
 
     async def async_unlock(self, **kwargs: Any) -> None:
-        data = self.coordinator.data[self.idx]
-        if data.get("engine_running"):
-            raise Exception("Engine running!  Prohibited to unlock windows")
         await self.coordinator.data[self.idx].unlock_window()
-        await asyncio.sleep(2)
-        await self.coordinator.async_request_refresh()
+        await self._update_status(False)

@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0eodometer.proto\x12\x1fservices.vehiclestates.odometer\"\x1d\n\x0eGetOdometerReq\x12\x0b\n\x03vin\x18\x02 \x01(\t\"8\n\x10odometerDataHead\x12\x12\n\nupdateTime\x18\x01 \x01(\x03\x12\x10\n\x08unknown1\x18\x02 \x01(\x03\"\xb6\x01\n\x0codometerData\x12?\n\x04head\x18\x01 \x01(\x0b\x32\x31.services.vehiclestates.odometer.odometerDataHead\x12\x15\n\rtotalDistance\x18\x02 \x01(\x03\x12\x12\n\nTMDistance\x18\x03 \x01(\x02\x12\x12\n\nTADistance\x18\x04 \x01(\x02\x12\x12\n\nTMAvgSpeed\x18\x05 \x01(\x05\x12\x12\n\nTAAvgSpeed\x18\x06 \x01(\x05\"[\n\x0fGetOdometerResp\x12\x0b\n\x03vin\x18\x02 \x01(\t\x12;\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32-.services.vehiclestates.odometer.odometerData2\x87\x01\n\x0fOdometerService\x12t\n\x0bGetOdometer\x12/.services.vehiclestates.odometer.GetOdometerReq\x1a\x30.services.vehiclestates.odometer.GetOdometerResp\"\x00\x30\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0eodometer.proto\x12\x1fservices.vehiclestates.odometer\"\x1d\n\x0eGetOdometerReq\x12\x0b\n\x03vin\x18\x02 \x01(\t\"+\n\tTimestamp\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x03\"\xb0\x02\n\x0codometerData\x12>\n\nupdateTime\x18\x01 \x01(\x0b\x32*.services.vehiclestates.odometer.Timestamp\x12\x16\n\x0eodometerMeters\x18\x02 \x01(\x03\x12\x19\n\x11tripMeterManualKm\x18\x03 \x01(\x02\x12\x1c\n\x14tripMeterAutomaticKm\x18\x04 \x01(\x02\x12\x1d\n\x15\x61verageSpeedKmPerHour\x18\x05 \x01(\x05\x12&\n\x1e\x61verageSpeedKmPerHourAutomatic\x18\x06 \x01(\x05\x12\x1e\n\x16tripMeterSinceChargeKm\x18\x07 \x01(\x05\x12(\n averageSpeedKmPerHourSinceCharge\x18\x08 \x01(\x05\"[\n\x0fGetOdometerResp\x12\x0b\n\x03vin\x18\x02 \x01(\t\x12;\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32-.services.vehiclestates.odometer.odometerData2\x87\x01\n\x0fOdometerService\x12t\n\x0bGetOdometer\x12/.services.vehiclestates.odometer.GetOdometerReq\x1a\x30.services.vehiclestates.odometer.GetOdometerResp\"\x00\x30\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,12 +33,12 @@ if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_GETODOMETERREQ']._serialized_start=51
   _globals['_GETODOMETERREQ']._serialized_end=80
-  _globals['_ODOMETERDATAHEAD']._serialized_start=82
-  _globals['_ODOMETERDATAHEAD']._serialized_end=138
-  _globals['_ODOMETERDATA']._serialized_start=141
-  _globals['_ODOMETERDATA']._serialized_end=323
-  _globals['_GETODOMETERRESP']._serialized_start=325
-  _globals['_GETODOMETERRESP']._serialized_end=416
-  _globals['_ODOMETERSERVICE']._serialized_start=419
-  _globals['_ODOMETERSERVICE']._serialized_end=554
+  _globals['_TIMESTAMP']._serialized_start=82
+  _globals['_TIMESTAMP']._serialized_end=125
+  _globals['_ODOMETERDATA']._serialized_start=128
+  _globals['_ODOMETERDATA']._serialized_end=432
+  _globals['_GETODOMETERRESP']._serialized_start=434
+  _globals['_GETODOMETERRESP']._serialized_end=525
+  _globals['_ODOMETERSERVICE']._serialized_start=528
+  _globals['_ODOMETERSERVICE']._serialized_end=663
 # @@protoc_insertion_point(module_scope)

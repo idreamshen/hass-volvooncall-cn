@@ -11,17 +11,17 @@ message GetFuelReq {
   string vin = 2;
 }
 
-message FuelDataTimeInfo {
-  int32 lastRunTime = 1;
-  int32 unknown1 = 2;
+message Timestamp {
+  int32 seconds = 1;
+  int32 nanos = 2;
 }
 
 message FuelData{
-  FuelDataTimeInfo timeInfo = 1;
-  int32 distanceToEmpty =2;
+  Timestamp updateTime = 1;
+  int32 distanceToEmptyKm =2;
   double TMFuelAvgConsum = 3;
   float fuelAmount=4;
-  int32 unknown2 =5;
+  int32 distanceToEmptyMiles =5;
   double ATFuleAvgConsum =6;
 }
 

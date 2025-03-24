@@ -8,31 +8,34 @@ Homeassistant volvooncall 中国区插件
 
 # 实体一览
 `{vin}` 表示车架号
-| ID                                            | 名称             | 备注                                     |
-|-----------------------------------------------|------------------|------------------------------------------|
-| `lock.{vin}_lock`                             | 车锁             | 远程锁定或解锁车辆                       |
-| `binary_sensor.{vin}_engine`                  | 引擎             |                                          |
-| `switch.{vin}_engine_remote_control`          | 远程启动         | 远程启动 & 空调                          |
-| `switch.{vin}_engine_duration`                | 远程启动持续时长 | 单位分钟，默认 5 分钟                    |
-| `sensor.{vin}_distance_to_empty`              | 续航里程         |                                          |
-| `binary_sensor.{vin}_front_left_door`         | 前左门           | 表示门是否打开                           |
-| `binary_sensor.{vin}_front_right_door`        | 前右门           |                                          |
-| `binary_sensor.{vin}_rear_left_door`          | 后左门           |                                          |
-| `binary_sensor.{vin}_rear_right_door`         | 后右门           |                                          |
-| `lock.{vin}_window_lock`                      | 远程窗锁         | 远程开窗或关窗（新款车型支持）           |
-| `binary_sensor.{vin}_front_left_window_open`  | 前左窗           | 表示窗是否打开                           |
-| `binary_sensor.{vin}_front_right_window_open` | 前右窗           |                                          |
-| `binary_sensor.{vin}_rear_left_window`        | 后左窗           |                                          |
-| `binary_sensor.{vin}_rear_right_window`       | 后右窗           |                                          |
-| `sensor.{vin}_fuel_amount`                    | 油箱剩余油量     |                                          |
-| `binary_sensor.{vin}_hood`                    | 引擎盖           | 表示引擎盖是否打开                       |
-| `sensor.{vin}_odometer`                       | 总里程           |                                          |
-| `binary_sensor.{vin}_sunroof`                 | 天窗             |                                          |
-| `binary_sensor.{vin}_tail_gate`               | 尾门             |                                          |
-| `device_tracker.{vin}_position`               | 位置             |                                          |
-| `device_tracker.{vin}_position_wgs84`         | 位置 wgs84 坐标  | 在 ha 默认地图上展示车辆时，请使用此实体 |
-| `button.{vin}_flash`                          | 闪灯             |                                          |
-| `button.{vin}_honk_and_flash`                 | 闪灯鸣笛         |                                          |
+| ID                                            | 名称             | 备注                                                      |
+|-----------------------------------------------|------------------|-----------------------------------------------------------|
+| `lock.{vin}_lock`                             | 车锁             | 远程锁定或解锁车辆                                        |
+| `binary_sensor.{vin}_engine`                  | 引擎             |                                                           |
+| `switch.{vin}_engine_remote_control`          | 远程启动         | 远程启动 & 空调                                           |
+| `number.{vin}_engine_duration`                | 远程启动持续时长 | 单位分钟，默认 5 分钟                                     |
+| `sensor.{vin}_distance_to_empty`              | 续航里程         |                                                           |
+| `binary_sensor.{vin}_front_left_door`         | 前左门           | 表示门是否打开                                            |
+| `binary_sensor.{vin}_front_right_door`        | 前右门           |                                                           |
+| `binary_sensor.{vin}_rear_left_door`          | 后左门           |                                                           |
+| `binary_sensor.{vin}_rear_right_door`         | 后右门           |                                                           |
+| `lock.{vin}_window_lock`                      | 远程窗锁         | 远程开窗或关窗（新款车型支持）                            |
+| `binary_sensor.{vin}_front_left_window_open`  | 前左窗           | 表示窗是否打开, 属性`open_status_ajar`表示是否仅打开一条缝|
+| `binary_sensor.{vin}_front_right_window_open` | 前右窗           |                                                           |
+| `binary_sensor.{vin}_rear_left_window`        | 后左窗           |                                                           |
+| `binary_sensor.{vin}_rear_right_window`       | 后右窗           |                                                           |
+| `sensor.{vin}_fuel_amount`                    | 油箱剩余油量     |                                                           |
+| `binary_sensor.{vin}_hood`                    | 引擎盖           | 表示引擎盖是否打开                                        |
+| `sensor.{vin}_odometer`                       | 总里程           |                                                           |
+| `binary_sensor.{vin}_sunroof`                 | 天窗             |                                                           |
+| `binary_sensor.{vin}_tail_gate`               | 尾门             |                                                           |
+| `device_tracker.{vin}_position`               | 位置             |                                                           |
+| `device_tracker.{vin}_position_wgs84`         | 位置 wgs84 坐标  | 在 ha 默认地图上展示车辆时，请使用此实体                  |
+| `button.{vin}_flash`                          | 闪灯             |                                                           |
+| `button.{vin}_honk_and_flash`                 | 闪灯鸣笛         |                                                           |
+| `button.{vin}_honk`                           | 鸣笛             |                                                           |
+| `switch.{vin}_sunroof_control`                | 远程控制天窗     | 仅在遮阳帘已打开时支持远程打开天窗（新款车型支持）        |
+| `switch.{vin}_tailgate_control`              | 远程控制尾箱     | 打开尾箱会同时解锁车辆,请注意及时锁车（新款车型支持）     |
 
 # 测试车型
 - 2021 S60
