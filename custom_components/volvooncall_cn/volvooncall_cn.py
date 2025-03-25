@@ -17,6 +17,7 @@ from .proto.invocation_pb2 import LockReq, LockType
 from .proto.invocation_pb2 import UnlockReq, UnlockType
 from .proto.invocation_pb2 import TailgateControlReq
 from .proto.invocation_pb2 import SunroofControlReq
+from .proto.invocation_pb2 import UpdateStatusReq
 from .proto.odometer_pb2_grpc import OdometerServiceStub
 from .proto.odometer_pb2 import GetOdometerReq, GetOdometerResp
 from .proto.availability_pb2_grpc import AvailabilityServiceStub
@@ -233,6 +234,18 @@ class VehicleAPI(VehicleBaseAPI):
             break
         return
 
+    async def update_status(self, vin: str):
+        stub = InvocationServiceStub(self.channel)
+        req_header = invocationHead(vin=vin)
+        req = UpdateStatusReq(head=req_header)
+        metadata: list = [("vin", vin)]
+        res: invocationCommResp = invocationCommResp()
+        for res in stub.UpdateStatus(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug("update_status resp")
+            _LOGGER.debug(res)
+            self.raise_invocation_fail(res.data.status)
+            break
+        return
 
 class Vehicle(object):
     def __init__(self, vin, api, isAaos):
@@ -382,6 +395,7 @@ class Vehicle(object):
 
         tasks = []
         await self._api.get_channel()
+        await self._api.update_status(self.vin)
         async with asyncio.TaskGroup() as tg:
             funcs = [self._parse_exterior, self._parse_odometer,
                      self._parse_fuel, self._parse_availability, self._parse_location, self._parse_engine_status]
