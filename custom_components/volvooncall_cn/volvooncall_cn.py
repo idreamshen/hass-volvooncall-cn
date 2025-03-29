@@ -276,6 +276,7 @@ class Vehicle(object):
         self.rear_left_window_open_ajar = False
         self.rear_right_window_open_ajar = False
         self.fuel_amount = 0
+        self.fuel_average_consumption_liters_per_100_km = 0
         self.tank_lid_open = False
         self.availability_status = AvailabilityStatus.Available
         self.unavailable_reason = AvailabilityReason.Unspecified1
@@ -331,6 +332,7 @@ class Vehicle(object):
             return
         self.fuel_amount = round(fuel_data.fuelAmount, 2)
         self.distance_to_empty = fuel_data.distanceToEmptyKm
+        self.fuel_average_consumption_liters_per_100_km = fuel_data.TMFuelAvgConsum
         # self.fuel_amount_level = fuel_data.fluelHalfLevel / 5
 
     async def _parse_odometer(self):
