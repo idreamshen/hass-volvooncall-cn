@@ -147,3 +147,9 @@ class SunroofControlReq(_message.Message):
     head: invocationHead
     type: invocationControlType
     def __init__(self, head: _Optional[_Union[invocationHead, _Mapping]] = ..., type: _Optional[_Union[invocationControlType, str]] = ...) -> None: ...
+
+class UpdateStatusReq(_message.Message):
+    __slots__ = ("head",)
+    HEAD_FIELD_NUMBER: _ClassVar[int]
+    head: invocationHead
+    def __init__(self, head: _Optional[_Union[invocationHead, _Mapping]] = ...) -> None: ...

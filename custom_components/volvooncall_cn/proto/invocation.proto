@@ -10,6 +10,7 @@ service InvocationService {
   rpc Unlock(UnlockReq) returns (stream invocationCommResp) {}
   rpc TailgateControl(TailgateControlReq) returns (stream invocationCommResp) {}
   rpc SunroofControl(SunroofControlReq) returns(stream invocationCommResp) {}
+  rpc UpdateStatus(UpdateStatusReq) returns(stream invocationCommResp) {}
 }
 
 message invocationHead{
@@ -99,4 +100,8 @@ message TailgateControlReq{
 message SunroofControlReq{
   invocationHead head = 1;
   invocationControlType type = 2;
+}
+
+message UpdateStatusReq{
+  invocationHead head = 1;
 }

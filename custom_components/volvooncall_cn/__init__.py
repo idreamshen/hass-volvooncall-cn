@@ -214,6 +214,12 @@ metaMap = {
         "icon": "mdi:gas-station",
         "unit": "L",
     },
+    "fuel_average_consumption_liters_per_100_km": {
+        "name": "Fuel average consumption liters per 100 km",
+        "device_class": "gas",
+        "icon": "mdi:gas-station",
+        "unit": "L/100km",
+    },
     # TODO
     # "fuel_amount_level": {
     #    "name": "Fuel amount level",
@@ -273,6 +279,12 @@ metaMap = {
         "name": "Sunroof control",
         "device_class": None,
         "icon": "mdi:home-roof",
+        "unit": "",
+    },
+    "service_warning": {
+        "name": "Service Warning",
+        "device_class": None,
+        "icon": "mdi:car-wrench",
         "unit": "",
     },
 }
