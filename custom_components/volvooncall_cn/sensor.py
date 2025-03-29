@@ -28,6 +28,7 @@ async def async_setup_entry(
         entities.append(VolvoSensor(coordinator, idx, "odo_meter"))
         entities.append(VolvoSensor(coordinator, idx, "fuel_amount"))
         entities.append(VolvoSensor(coordinator, idx, "fuel_average_consumption_liters_per_100_km"))
+        entities.append(VolvoSensor(coordinator, idx, "service_warning"))
         # entities.append(VolvoSensor(coordinator, idx, "fuel_amount_level"))
 
     async_add_entities(entities)

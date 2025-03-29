@@ -108,7 +108,7 @@ class VehicleAPI(VehicleBaseAPI):
         for res in stub.GetExterior(req, metadata=metadata, timeout=TIMEOUT.seconds):
             break
         return res
-    
+
     async def get_health(self, vin) -> GetHealthResp:
         stub = HealthServiceStub(self.channel)
         req = GetHealthReq(vin=vin)
@@ -302,6 +302,23 @@ class Vehicle(object):
             "longitude": 0.0,
             "latitude": 0.0
         }
+        self.service_warning = "无需保养"
+
+# Map service_warning enum to Chinese text
+Vehicle.service_warning_map = {
+    0: "未指定",  # SERVICE_WARNING_UNSPECIFIED
+    1: "无需保养",  # SERVICE_WARNING_NO_WARNING
+    2: "未知警告",  # SERVICE_WARNING_UNKNOWN_WARNING
+    3: "定期保养即将到期",  # SERVICE_WARNING_REGULAR_MAINTENANCE_ALMOST_TIME_FOR_SERVICE
+    4: "发动机工作时间即将需要保养",  # SERVICE_WARNING_ENGINE_HOURS_ALMOST_TIME_FOR_SERVICE
+    5: "行驶里程即将需要保养",  # SERVICE_WARNING_DISTANCE_DRIVEN_ALMOST_TIME_FOR_SERVICE
+    6: "定期保养时间已到",  # SERVICE_WARNING_REGULAR_MAINTENANCE_TIME_FOR_SERVICE
+    7: "发动机工作时间保养时间已到",  # SERVICE_WARNING_ENGINE_HOURS_TIME_FOR_SERVICE
+    8: "行驶里程保养时间已到",  # SERVICE_WARNING_DISTANCE_DRIVEN_TIME_FOR_SERVICE
+    9: "定期保养已逾期",  # SERVICE_WARNING_REGULAR_MAINTENANCE_OVERDUE_FOR_SERVICE
+    10: "发动机工作时间保养已逾期",  # SERVICE_WARNING_ENGINE_HOURS_OVERDUE_FOR_SERVICE
+    11: "行驶里程保养已逾期"  # SERVICE_WARNING_DISTANCE_DRIVEN_OVERDUE_FOR_SERVICE
+}
 
     async def _parse_exterior(self):
         try:
@@ -334,11 +351,15 @@ class Vehicle(object):
             else:
                 setattr(self, openkey, False)
                 setattr(self, ajarkey, False)
-    
+
     async def _parse_health(self):
         try:
             health_resp: GetHealthResp = await self._api.get_health(self.vin)
             health_status: HealthStatus = health_resp.data
+
+            # Set the service_warning field based on the enum value
+            warning_value = health_status.service_warning
+            self.service_warning = self.service_warning_map.get(warning_value, "未知状态")
         except Exception as err:
             _LOGGER.error(err)
             return
@@ -423,7 +444,7 @@ class Vehicle(object):
             await self._api.update_status(self.vin)
         async with asyncio.TaskGroup() as tg:
             funcs = [self._parse_exterior, self._parse_odometer,
-                     self._parse_fuel, self._parse_availability, 
+                     self._parse_fuel, self._parse_availability,
                      self._parse_location, self._parse_engine_status,
                      self._parse_health]
             for runf in funcs:
