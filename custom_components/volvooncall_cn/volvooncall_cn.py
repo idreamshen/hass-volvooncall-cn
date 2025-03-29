@@ -6,6 +6,8 @@ from .volvooncall_base import VehicleBaseAPI, gcj02towgs84
 from .proto.exterior_pb2_grpc import ExteriorServiceStub
 from .proto.exterior_pb2 import GetExteriorReq, GetExteriorResp, ExteriorStatus
 from .proto.exterior_pb2 import LockStatus, OpenStatus
+from .proto.health_pb2_grpc import HealthServiceStub
+from .proto.health_pb2 import GetHealthReq, GetHealthResp, HealthStatus
 from .proto.fuel_pb2_grpc import FuelServiceStub
 from .proto.fuel_pb2 import GetFuelReq, GetFuelResp
 from .proto.invocation_pb2_grpc import InvocationServiceStub
@@ -104,6 +106,17 @@ class VehicleAPI(VehicleBaseAPI):
         metadata: list = [("vin", vin)]
         res = GetExteriorResp()
         for res in stub.GetExterior(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            break
+        return res
+    
+    async def get_health(self, vin) -> GetHealthResp:
+        stub = HealthServiceStub(self.channel)
+        req = GetHealthReq(vin=vin)
+        metadata: list = [("vin", vin)]
+        res = GetHealthResp()
+        for res in stub.GetHealth(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug("get_health resp")
+            _LOGGER.debug(res)
             break
         return res
 
@@ -321,6 +334,14 @@ class Vehicle(object):
             else:
                 setattr(self, openkey, False)
                 setattr(self, ajarkey, False)
+    
+    async def _parse_health(self):
+        try:
+            health_resp: GetHealthResp = await self._api.get_health(self.vin)
+            health_status: HealthStatus = health_resp.data
+        except Exception as err:
+            _LOGGER.error(err)
+            return
 
     async def _parse_fuel(self):
         try:
@@ -402,7 +423,9 @@ class Vehicle(object):
             await self._api.update_status(self.vin)
         async with asyncio.TaskGroup() as tg:
             funcs = [self._parse_exterior, self._parse_odometer,
-                     self._parse_fuel, self._parse_availability, self._parse_location, self._parse_engine_status]
+                     self._parse_fuel, self._parse_availability, 
+                     self._parse_location, self._parse_engine_status,
+                     self._parse_health]
             for runf in funcs:
                 task = tg.create_task(runf())
                 tasks.append(task)
