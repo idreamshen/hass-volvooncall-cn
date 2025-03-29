@@ -395,7 +395,9 @@ class Vehicle(object):
 
         tasks = []
         await self._api.get_channel()
-        await self._api.update_status(self.vin)
+        if !self.isAaos:
+            # 旧款车机（非安卓）增加强制刷新状态接口调用
+            await self._api.update_status(self.vin)
         async with asyncio.TaskGroup() as tg:
             funcs = [self._parse_exterior, self._parse_odometer,
                      self._parse_fuel, self._parse_availability, self._parse_location, self._parse_engine_status]
