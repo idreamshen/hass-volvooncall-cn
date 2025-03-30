@@ -1,13 +1,118 @@
 {
-  "config": {
-    "step": {
-      "user": {
-        "description": "Setup Volvo On Call",
-        "data": {
-          "username": "Username",
-          "password": "Password"
+    "config": {
+        "step": {
+            "user": {
+                "description": "Setup Volvo On Call",
+                "data": {
+                    "username": "Username",
+                    "password": "Password"
+                }
+            }
         }
-      }
+    },
+    "entity": {
+        "binary_sensor": {
+            "tail_gate_open": {
+                "name": "{nickname} Tail gate"
+            },
+            "rear_right_door_open": {
+                "name": "{nickname} Rear right door"
+            },
+            "rear_left_door_open": {
+                "name": "{nickname} Rear left door"
+            },
+            "front_right_door_open": {
+                "name": "{nickname} Front right door"
+            },
+            "front_left_door_open": {
+                "name": "{nickname} Front left door"
+            },
+            "hood_open": {
+                "name": "{nickname} Hood"
+            },
+            "sunroof_open": {
+                "name": "{nickname} Sunroof"
+            },
+            "engine_running": {
+                "name": "{nickname} Engine"
+            },
+            "front_left_window_open": {
+                "name": "{nickname} Front left window",
+                "state_attributes": {
+                    "open_status_ajar": {
+                        "name": "Ajar"
+                    }
+                }
+            },
+            "front_right_window_open": {
+                "name": "{nickname} Front right window"
+            },
+            "rear_left_window_open": {
+                "name": "{nickname} Rear left window"
+            },
+            "rear_right_window_open": {
+                "name": "{nickname} Rear right window"
+            },
+            "position": {
+                "name": "{nickname} Position"
+            },
+            "position_wgs84": {
+                "name": "{nickname} Position WGS84"
+            }
+        },
+        "switch": {
+            "engine_switch": {
+                "name": "{nickname} Engine Remote control",
+                "state_attributes": {
+                    "remote_start_at": {
+                        "name": "Engine Start Time"
+                    },
+                    "remote_end_at": {
+                        "name": "Engine End Time"
+                    }
+                }
+            },
+            "tail_gate_switch": {
+                "name": "{nickname} Tailgate control"
+            },
+            "sunroof_switch": {
+                "name": "{nickname} Sunroof control"
+            }
+        },
+        "button": {
+            "flash_button": {
+                "name": "{nickname} Flash"
+            },
+            "honk_flash_button": {
+                "name": "{nickname} Honk And Flash"
+            },
+            "honk_button": {
+                "name": "{nickname} Honk"
+            }
+        },
+        "number": {
+            "engine_duration_number": {
+                "name": "{nickname} Engine Duration"
+            }
+        },
+        "lock": {
+            "car_lock": {
+                "name": "{nickname} Car Lock"
+            },
+            "window_lock": {
+                "name": "{nickname} Winodw Lock"
+            }
+        },
+        "sensor": {
+            "distance_to_empty": {
+                "name": "{nickname} Distance to empty"
+            },
+            "odo_meter": {
+                "name": "{nickname} Odometer"
+            },
+            "fuel_amount": {
+                "name": "{nickname} Fuel amount"
+            }
+        }
     }
-  }
 }

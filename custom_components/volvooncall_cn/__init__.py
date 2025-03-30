@@ -5,7 +5,7 @@ import async_timeout
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import callback
@@ -106,12 +106,6 @@ metaMap = {
         "icon": "",
         "unit": "",
     },
-    # "car_lock_open": {
-    #    "name": "Lock",
-    #    "device_class": "lock",
-    #    "icon": "",
-    #    "unit": "",
-    # },
     "window_lock": {
         "name": "Winodw Lock",
         "device_class": None,
@@ -350,9 +344,9 @@ class VolvoEntity(CoordinatorEntity):
         self.idx = idx
         self.metaMapKey = metaMapKey
 
-    @property
-    def name(self):
-        return f"{self.coordinator.data[self.idx].vin} {metaMap[self.metaMapKey]['name']}"
+    # @property
+    # def name(self):
+      # return f"{self.coordinator.data[self.idx].vin} {metaMap[self.metaMapKey]['name']}"
 
     @property
     def icon(self):
@@ -376,3 +370,15 @@ class VolvoEntity(CoordinatorEntity):
     def unique_id(self) -> str:
         """Return a unique ID."""
         return f"{self.coordinator.data[self.idx].vin}-{self.metaMapKey}"
+
+    @property
+    def translation_key(self) -> str:
+        return self.metaMapKey
+
+    @property
+    def has_entity_name(self) -> bool:
+        return True
+
+    @property
+    def translation_placeholders(self):
+        return {"nickname": (self.coordinator.data[self.idx].nickname)}

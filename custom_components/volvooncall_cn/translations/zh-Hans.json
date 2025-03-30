@@ -1,13 +1,118 @@
 {
-  "config": {
-    "step": {
-      "user": {
-        "description": "设置 Volvo On Call 账号",
-        "data": {
-          "username": "手机号(11位数字)",
-          "password": "密码"
+    "config": {
+        "step": {
+            "user": {
+                "description": "设置 Volvo On Call 账号",
+                "data": {
+                    "username": "手机号(11位数字)",
+                    "password": "密码"
+                }
+            }
         }
-      }
+    },
+    "entity": {
+        "binary_sensor": {
+            "tail_gate_open": {
+                "name": "{nickname}尾箱"
+            },
+            "rear_right_door_open": {
+                "name": "{nickname}后右门"
+            },
+            "rear_left_door_open": {
+                "name": "{nickname}后左门"
+            },
+            "front_left_door_open": {
+                "name": "{nickname}前左门"
+            },
+            "front_right_door_open": {
+                "name": "{nickname}前右门"
+            },
+            "hood_open": {
+                "name": "{nickname}引擎盖"
+            },
+            "sunroof_open": {
+                "name": "{nickname}天窗"
+            },
+            "engine_running": {
+                "name": "{nickname}引擎"
+            },
+            "front_left_window_open": {
+                "name": "{nickname}前左窗",
+                "state_attributes": {
+                    "open_status_ajar": {
+                        "name": "仅开一条缝"
+                    }
+                }
+            },
+            "front_right_window_open": {
+                "name": "{nickname}前右窗"
+            },
+            "rear_left_window_open": {
+                "name": "{nickname}后左窗"
+            },
+            "rear_right_window_open": {
+                "name": "{nickname}后右窗"
+            },
+            "position": {
+                "name": "{nickname}原始位置"
+            },
+            "position_wgs84": {
+                "name": "{nickname}位置"
+            }
+        },
+        "switch": {
+            "engine_switch": {
+                "name": "{nickname}远程启动",
+                "state_attributes": {
+                    "remote_start_at": {
+                        "name": "远程启动开始时间"
+                    },
+                    "remote_end_at": {
+                        "name": "远程启动结束时间"
+                    }
+                }
+            },
+            "tail_gate_switch": {
+                "name": "{nickname}尾箱控制"
+            },
+            "sunroof_switch": {
+                "name": "{nickname}天窗控制"
+            }
+        },
+        "button": {
+            "flash_button": {
+                "name": "{nickname}闪灯"
+            },
+            "honk_flash_button": {
+                "name": "{nickname}闪灯鸣笛 "
+            },
+            "honk_button": {
+                "name": "{nickname}鸣笛"
+            }
+        },
+        "number": {
+            "engine_duration_number": {
+                "name": "{nickname}远程启动持续时长"
+            }
+        },
+        "lock": {
+            "car_lock": {
+                "name": "{nickname}车锁"
+            },
+            "window_lock": {
+                "name": "{nickname}车窗锁"
+            }
+        },
+        "sensor": {
+            "distance_to_empty": {
+                "name": "{nickname}续航里程"
+            },
+            "fuel_amount": {
+                "name": "{nickname}油箱剩余油量"
+            },
+            "odo_meter": {
+                "name": "{nickname}总里程"
+            }
+        }
     }
-  }
 }
