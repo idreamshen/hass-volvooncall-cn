@@ -319,6 +319,7 @@ class Vehicle(object):
             "latitude": 0.0
         }
         self.service_warning_msg = "无需保养"
+        self.service_warning = False
 
     async def _parse_exterior(self):
         try:
@@ -360,6 +361,11 @@ class Vehicle(object):
             # Set the service_warning field based on the enum value
             warning_value = health_status.service_warning
             self.service_warning_msg = service_warning_msg_map.get(warning_value, "未知状态")
+            if warning_value == 1 or warning_value == 0:
+                self.service_warning = False
+            else:
+                self.service_warning = True
+            
         except Exception as err:
             _LOGGER.error(err)
             return

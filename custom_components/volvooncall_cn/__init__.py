@@ -286,6 +286,12 @@ metaMap = {
         "device_class": None,
         "icon": "mdi:car-wrench",
         "unit": None,
+    },
+    "service_warning": {
+        "name": "Service Warning",
+        "device_class": None,
+        "icon": "mdi:car-wrench",
+        "unit": None,
     }
 }
 
