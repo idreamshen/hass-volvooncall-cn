@@ -43,6 +43,15 @@ async def async_setup_entry(
         entities.append(VolvoWindowSensor(coordinator, idx, "rear_left_window_open"))
         entities.append(VolvoWindowSensor(coordinator, idx, "rear_right_window_open"))
         entities.append(VolvoSensor(coordinator, idx, "sunroof_open"))
+        entities.append(VolvoSensor(coordinator, idx, "service_warning"))
+        entities.append(VolvoSensor(coordinator, idx, "brake_fluid_level_warning"))
+        entities.append(VolvoSensor(coordinator, idx, "engine_coolant_level_warning"))
+        entities.append(VolvoSensor(coordinator, idx, "oil_level_warning"))
+        entities.append(VolvoSensor(coordinator, idx, "washer_fluid_level_warning"))
+        entities.append(VolvoSensor(coordinator, idx, "front_left_tyre_pressure_warning"))
+        entities.append(VolvoSensor(coordinator, idx, "front_right_tyre_pressure_warning"))
+        entities.append(VolvoSensor(coordinator, idx, "rear_left_tyre_pressure_warning"))
+        entities.append(VolvoSensor(coordinator, idx, "rear_right_tyre_pressure_warning"))
 
     async_add_entities(entities)
 

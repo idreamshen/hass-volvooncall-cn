@@ -214,6 +214,12 @@ metaMap = {
         "icon": "mdi:gas-station",
         "unit": "L",
     },
+    "fuel_average_consumption_liters_per_100_km": {
+        "name": "Fuel average consumption liters per 100 km",
+        "device_class": "gas",
+        "icon": "mdi:gas-station",
+        "unit": "L/100km",
+    },
     # TODO
     # "fuel_amount_level": {
     #    "name": "Fuel amount level",
@@ -275,8 +281,67 @@ metaMap = {
         "icon": "mdi:home-roof",
         "unit": "",
     },
+    "service_warning_msg": {
+        "name": "Service Warning Message",
+        "device_class": None,
+        "icon": "mdi:car-wrench",
+        "unit": None,
+    },
+    "service_warning": {
+        "name": "Service Warning",
+        "device_class": "problem",
+        "icon": "mdi:car-wrench",
+        "unit": None,
+    },
+    "brake_fluid_level_warning": {
+        "name": "Brake Fluid Level Warning",
+        "device_class": "problem",
+        "icon": "mdi:car-brake-fluid-level",
+        "unit": None,
+    },
+    "engine_coolant_level_warning": {
+        "name": "Engine Coolant Level Warning",
+        "device_class": "problem",
+        "icon": "mdi:car-coolant-level",
+        "unit": None,
+    },
+    "oil_level_warning": {
+        "name": "Oil Level Warning",
+        "device_class": "problem",
+        "icon": "mdi:oil-level",
+        "unit": None,
+    },
+    "washer_fluid_level_warning": {
+        "name": "Washer Fluid Level Warning",
+        "device_class": "problem",
+        "icon": "mdi:wiper-wash",
+        "unit": None,
+    },
+    "front_left_tyre_pressure_warning": {
+        "name": "Front Left Tyre Pressure Warning",
+        "device_class": "problem",
+        "icon": "mdi:car-tire-alert",
+        "unit": None,
+    },
+    "front_right_tyre_pressure_warning": {
+        "name": "Front Right Tyre Pressure Warning",
+        "device_class": "problem",
+        "icon": "mdi:car-tire-alert",
+        "unit": None,
+    },
+    "rear_left_tyre_pressure_warning": {
+        "name": "Rear Left Tyre Pressure Warning",
+        "device_class": "problem",
+        "icon": "mdi:car-tire-alert",
+        "unit": None,
+    },
+    "rear_right_tyre_pressure_warning": {
+        "name": "Rear Right Tyre Pressure Warning",
+        "device_class": "problem",
+        "icon": "mdi:car-tire-alert",
+        "unit": None,
+    }
 }
-
 
 class VolvoEntity(CoordinatorEntity):
     def __init__(self, coordinator, idx, metaMapKey):

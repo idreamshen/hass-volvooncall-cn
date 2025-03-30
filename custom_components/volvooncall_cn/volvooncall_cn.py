@@ -6,6 +6,8 @@ from .volvooncall_base import VehicleBaseAPI, gcj02towgs84
 from .proto.exterior_pb2_grpc import ExteriorServiceStub
 from .proto.exterior_pb2 import GetExteriorReq, GetExteriorResp, ExteriorStatus
 from .proto.exterior_pb2 import LockStatus, OpenStatus
+from .proto.health_pb2_grpc import HealthServiceStub
+from .proto.health_pb2 import GetHealthReq, GetHealthResp, HealthStatus
 from .proto.fuel_pb2_grpc import FuelServiceStub
 from .proto.fuel_pb2 import GetFuelReq, GetFuelResp
 from .proto.invocation_pb2_grpc import InvocationServiceStub
@@ -17,6 +19,7 @@ from .proto.invocation_pb2 import LockReq, LockType
 from .proto.invocation_pb2 import UnlockReq, UnlockType
 from .proto.invocation_pb2 import TailgateControlReq
 from .proto.invocation_pb2 import SunroofControlReq
+from .proto.invocation_pb2 import UpdateStatusReq
 from .proto.odometer_pb2_grpc import OdometerServiceStub
 from .proto.odometer_pb2 import GetOdometerReq, GetOdometerResp
 from .proto.availability_pb2_grpc import AvailabilityServiceStub
@@ -35,6 +38,22 @@ USER_AGENT = "vca-android/5.51.1 grpc-java-okhttp/1.68.0"
 MAX_RETRIES = 1
 TIMEOUT = datetime.timedelta(seconds=10)
 DOMAIN = "volvooncall_cn"
+
+# Map service_warning enum to Chinese text
+service_warning_msg_map = {
+    0: "未指定",  # SERVICE_WARNING_UNSPECIFIED
+    1: "无需保养",  # SERVICE_WARNING_NO_WARNING
+    2: "未知警告",  # SERVICE_WARNING_UNKNOWN_WARNING
+    3: "定期保养即将到期",  # SERVICE_WARNING_REGULAR_MAINTENANCE_ALMOST_TIME_FOR_SERVICE
+    4: "发动机工作时间即将需要保养",  # SERVICE_WARNING_ENGINE_HOURS_ALMOST_TIME_FOR_SERVICE
+    5: "行驶里程即将需要保养",  # SERVICE_WARNING_DISTANCE_DRIVEN_ALMOST_TIME_FOR_SERVICE
+    6: "定期保养时间已到",  # SERVICE_WARNING_REGULAR_MAINTENANCE_TIME_FOR_SERVICE
+    7: "发动机工作时间保养时间已到",  # SERVICE_WARNING_ENGINE_HOURS_TIME_FOR_SERVICE
+    8: "行驶里程保养时间已到",  # SERVICE_WARNING_DISTANCE_DRIVEN_TIME_FOR_SERVICE
+    9: "定期保养已逾期",  # SERVICE_WARNING_REGULAR_MAINTENANCE_OVERDUE_FOR_SERVICE
+    10: "发动机工作时间保养已逾期",  # SERVICE_WARNING_ENGINE_HOURS_OVERDUE_FOR_SERVICE
+    11: "行驶里程保养已逾期"  # SERVICE_WARNING_DISTANCE_DRIVEN_OVERDUE_FOR_SERVICE
+}
 
 
 def isWindowOpen(status) -> bool:
@@ -103,6 +122,17 @@ class VehicleAPI(VehicleBaseAPI):
         metadata: list = [("vin", vin)]
         res = GetExteriorResp()
         for res in stub.GetExterior(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            break
+        return res
+
+    async def get_health(self, vin) -> GetHealthResp:
+        stub = HealthServiceStub(self.channel)
+        req = GetHealthReq(vin=vin)
+        metadata: list = [("vin", vin)]
+        res = GetHealthResp()
+        for res in stub.GetHealth(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug("get_health resp")
+            _LOGGER.debug(res)
             break
         return res
 
@@ -233,6 +263,18 @@ class VehicleAPI(VehicleBaseAPI):
             break
         return
 
+    async def update_status(self, vin: str):
+        stub = InvocationServiceStub(self.channel)
+        req_header = invocationHead(vin=vin)
+        req = UpdateStatusReq(head=req_header)
+        metadata: list = [("vin", vin)]
+        res: invocationCommResp = invocationCommResp()
+        for res in stub.UpdateStatus(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug("update_status resp")
+            _LOGGER.debug(res)
+            self.raise_invocation_fail(res.data.status)
+            break
+        return
 
 class Vehicle(object):
     def __init__(self, vin, api, isAaos):
@@ -263,6 +305,7 @@ class Vehicle(object):
         self.rear_left_window_open_ajar = False
         self.rear_right_window_open_ajar = False
         self.fuel_amount = 0
+        self.fuel_average_consumption_liters_per_100_km = 0
         self.tank_lid_open = False
         self.availability_status = AvailabilityStatus.Available
         self.unavailable_reason = AvailabilityReason.Unspecified1
@@ -275,6 +318,16 @@ class Vehicle(object):
             "longitude": 0.0,
             "latitude": 0.0
         }
+        self.service_warning_msg = "无需保养"
+        self.service_warning = False
+        self.brake_fluid_level_warning = False
+        self.engine_coolant_level_warning = False
+        self.oil_level_warning = False
+        self.washer_fluid_level_warning = False
+        self.front_left_tyre_pressure_warning = False
+        self.front_right_tyre_pressure_warning = False
+        self.rear_left_tyre_pressure_warning = False
+        self.rear_right_tyre_pressure_warning = False
 
     async def _parse_exterior(self):
         try:
@@ -308,6 +361,27 @@ class Vehicle(object):
                 setattr(self, openkey, False)
                 setattr(self, ajarkey, False)
 
+    async def _parse_health(self):
+        try:
+            health_resp: GetHealthResp = await self._api.get_health(self.vin)
+            health_status: HealthStatus = health_resp.data
+
+            # Set the service_warning field based on the enum value
+            self.service_warning_msg = service_warning_msg_map.get(health_status.service_warning, "未知状态")
+            self.service_warning = health_status.service_warning > 1
+            self.brake_fluid_level_warning = health_status.brake_fluid_level_warning > 1
+            self.engine_coolant_level_warning = health_status.engine_coolant_level_warning > 1
+            self.oil_level_warning = health_status.oil_level_warning > 1
+            self.washer_fluid_level_warning = health_status.washer_fluid_level_warning > 1
+            self.front_left_tyre_pressure_warning = health_status.front_left_tyre_pressure_warning > 1
+            self.front_right_tyre_pressure_warning = health_status.front_right_tyre_pressure_warning > 1
+            self.rear_left_tyre_pressure_warning = health_status.rear_left_tyre_pressure_warning > 1
+            self.rear_right_tyre_pressure_warning = health_status.rear_right_tyre_pressure_warning > 1
+            
+        except Exception as err:
+            _LOGGER.error(err)
+            return
+
     async def _parse_fuel(self):
         try:
             fuel_resp: GetFuelResp = await self._api.get_fuel_status(self.vin)
@@ -318,6 +392,7 @@ class Vehicle(object):
             return
         self.fuel_amount = round(fuel_data.fuelAmount, 2)
         self.distance_to_empty = fuel_data.distanceToEmptyKm
+        self.fuel_average_consumption_liters_per_100_km = fuel_data.TMFuelAvgConsum
         # self.fuel_amount_level = fuel_data.fluelHalfLevel / 5
 
     async def _parse_odometer(self):
@@ -382,9 +457,14 @@ class Vehicle(object):
 
         tasks = []
         await self._api.get_channel()
+        if not self.isAaos:
+            # 旧款车机（非安卓）增加强制刷新状态接口调用
+            await self._api.update_status(self.vin)
         async with asyncio.TaskGroup() as tg:
             funcs = [self._parse_exterior, self._parse_odometer,
-                     self._parse_fuel, self._parse_availability, self._parse_location, self._parse_engine_status]
+                     self._parse_fuel, self._parse_availability,
+                     self._parse_location, self._parse_engine_status,
+                     self._parse_health]
             for runf in funcs:
                 task = tg.create_task(runf())
                 tasks.append(task)
@@ -440,3 +520,4 @@ class Vehicle(object):
 
     async def sunroof_control_close(self):
         await self._api.sunroof_contorl(self.vin, invocationControlType.CLOSE)
+
