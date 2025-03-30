@@ -64,6 +64,16 @@ class VolvoEngineSwitch(VolvoSwitchEntity):
         await self.coordinator.data[self.idx].engine_stop()
         await self._update_status(False)
 
+    @property
+    def extra_state_attributes(self):
+        start_time = "engine_remote_start_time"
+        end_time = "engine_remote_end_time"
+        data = self.coordinator.data[self.idx]
+        return {
+            "remote_start_at": data.get(start_time),
+            "remote_end_at": data.get(end_time)
+        }
+
 
 class VolvoTailgateSwitch(VolvoSwitchEntity):
     def __init__(self, coordinator, idx, metaKey):

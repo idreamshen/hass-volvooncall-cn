@@ -309,6 +309,8 @@ class Vehicle(object):
         self.tank_lid_open = False
         self.availability_status = AvailabilityStatus.Available
         self.unavailable_reason = AvailabilityReason.Unspecified1
+        self.engine_remote_start_time = 0
+        self.engine_remote_end_time = 0
         # self.fuel_amount_level = 0
         self.position = {
             "longitude": 0.0,
@@ -446,6 +448,8 @@ class Vehicle(object):
             self.engine_running = True
         else:
             self.engine_remote_running = False
+        self.engine_remote_start_time = engine_data.engineStartTime
+        self.engine_remote_end_time = engine_data.engineEndTime
 
     async def update(self):
         if not self.series_name:
