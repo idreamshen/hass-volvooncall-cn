@@ -40,7 +40,7 @@ Homeassistant volvooncall 中国区插件
 | `binary_sensor.{vin}_service_warning`              | 保养警告     |      |
 | `sensor.{vin}_service_warning_msg`              | 保养警告信息     | 无需保养、未知警告、定期保养即将到期、发动机工作时间即将需要保养、行驶里程即将需要保养、定期保养时间已到、发动机工作时间保养时间已到、行驶里程保养时间已到、定期保养已逾期、发动机工作时间保养已逾期、行驶里程保养已逾期 |
 | `binary_sensor.{vin}_brake_fluid_level_warning`              | 刹车液警告     |      |
-| `binary_sensor.{vin}_engine_coolant_level_warningg`              | 发动机冷却液警告     |      |
+| `binary_sensor.{vin}_engine_coolant_level_warning`              | 发动机冷却液警告     |      |
 | `binary_sensor.{vin}_oil_level_warning`              | 机油警告     |      |
 | `binary_sensor.{vin}_washer_fluid_level_warning`              | 玻璃水警告     |      |
 | `binary_sensor.{vin}_front_left_tyre_pressure_warning`              | 左前胎压警告     |      |
