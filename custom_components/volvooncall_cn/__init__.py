@@ -289,7 +289,7 @@ metaMap = {
     },
     "service_warning": {
         "name": "Service Warning",
-        "device_class": None,
+        "device_class": "problem",
         "icon": "mdi:car-wrench",
         "unit": None,
     }
