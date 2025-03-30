@@ -281,12 +281,12 @@ metaMap = {
         "icon": "mdi:home-roof",
         "unit": "",
     },
-    "service_warning": {
-        "name": "Service Warning",
+    "service_warning_msg": {
+        "name": "Service Warning Message",
         "device_class": None,
         "icon": "mdi:car-wrench",
-        "unit": "",
-    },
+        "unit": None,
+    }
 }
 
 
