@@ -320,6 +320,14 @@ class Vehicle(object):
         }
         self.service_warning_msg = "无需保养"
         self.service_warning = False
+        self.brake_fluid_level_warning = False
+        self.engine_coolant_level_warning = False
+        self.oil_level_warning = False
+        self.washer_fluid_level_warning = False
+        self.front_left_tyre_pressure_warning = False
+        self.front_right_tyre_pressure_warning = False
+        self.rear_left_tyre_pressure_warning = False
+        self.rear_right_tyre_pressure_warning = False
 
     async def _parse_exterior(self):
         try:
@@ -359,12 +367,16 @@ class Vehicle(object):
             health_status: HealthStatus = health_resp.data
 
             # Set the service_warning field based on the enum value
-            warning_value = health_status.service_warning
-            self.service_warning_msg = service_warning_msg_map.get(warning_value, "未知状态")
-            if warning_value == 1 or warning_value == 0:
-                self.service_warning = False
-            else:
-                self.service_warning = True
+            self.service_warning_msg = service_warning_msg_map.get(health_status.service_warning, "未知状态")
+            self.service_warning = health_status.service_warning > 1
+            self.brake_fluid_level_warning = health_status.brake_fluid_level_warning > 1
+            self.engine_coolant_level_warning = health_status.engine_coolant_level_warning > 1
+            self.oil_level_warning = health_status.oil_level_warning > 1
+            self.washer_fluid_level_warning = health_status.washer_fluid_level_warning > 1
+            self.front_left_tyre_pressure_warning = health_status.front_left_tyre_pressure_warning > 1
+            self.front_right_tyre_pressure_warning = health_status.front_right_tyre_pressure_warning > 1
+            self.rear_left_tyre_pressure_warning = health_status.rear_left_tyre_pressure_warning > 1
+            self.rear_right_tyre_pressure_warning = health_status.rear_right_tyre_pressure_warning > 1
             
         except Exception as err:
             _LOGGER.error(err)
