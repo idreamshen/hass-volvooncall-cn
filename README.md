@@ -36,6 +36,17 @@ Homeassistant volvooncall 中国区插件
 | `button.{vin}_honk`                           | 鸣笛             |                                                           |
 | `switch.{vin}_sunroof_control`                | 远程控制天窗     | 仅在遮阳帘已打开时支持远程打开天窗（新款车型支持）        |
 | `switch.{vin}_tailgate_control`              | 远程控制尾箱     | 打开尾箱会同时解锁车辆,请注意及时锁车（新款车型支持）     |
+| `binary_sensor.{vin}_service_warning`              | 保养警告     |      |
+| `sensor.{vin}_service_warning_msg`              | 保养警告信息     | 无需保养、未知警告、定期保养即将到期、发动机工作时间即将需要保养、行驶里程即将需要保养、定期保养时间已到、发动机工作时间保养时间已到、行驶里程保养时间已到、定期保养已逾期、发动机工作时间保养已逾期、行驶里程保养已逾期 |
+| `binary_sensor.{vin}_brake_fluid_level_warning`              | 刹车液警告     |      |
+| `binary_sensor.{vin}_engine_coolant_level_warningg`              | 发动机冷却液警告     |      |
+| `binary_sensor.{vin}_oil_level_warning`              | 机油警告     |      |
+| `binary_sensor.{vin}_washer_fluid_level_warning`              | 玻璃水警告     |      |
+| `binary_sensor.{vin}_front_left_tyre_pressure_warning`              | 左前胎压警告     |      |
+| `binary_sensor.{vin}_front_right_tyre_pressure_warning`              | 右前胎压警告     |      |
+| `binary_sensor.{vin}_rear_left_tyre_pressure_warning`              | 左后胎压警告     |      |
+| `binary_sensor.{vin}_rear_right_tyre_pressure_warning`              | 右后胎压警告     |      |
+
 
 # 测试车型
 - 2021 S60
