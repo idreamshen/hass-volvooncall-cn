@@ -53,12 +53,6 @@
             "rear_right_window_open": {
                 "name": "{nickname}后右窗"
             },
-            "position": {
-                "name": "{nickname}原始位置"
-            },
-            "position_wgs84": {
-                "name": "{nickname}位置"
-            },
             "service_warning": {
                 "name": "{nickname}保养警告"
             },
@@ -159,6 +153,14 @@
             },
             "fuel_average_consumption_liters_per_100_km": {
                 "name": "{nickname}百公里油耗"
+            }
+        },
+        "device_tracker": {
+            "position": {
+                "name": "{nickname}原始位置"
+            },
+            "position_wgs84": {
+                "name": "{nickname}位置"
             }
         }
     }

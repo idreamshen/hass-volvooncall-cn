@@ -53,12 +53,6 @@
             "rear_right_window_open": {
                 "name": "{nickname} Rear right window"
             },
-            "position": {
-                "name": "{nickname} Position"
-            },
-            "position_wgs84": {
-                "name": "{nickname} Position WGS84"
-            },
             "service_warning": {
                 "name": "{nickname} Service Warning"
             },
@@ -159,6 +153,14 @@
             },
             "fuel_average_consumption_liters_per_100_km": {
                 "name": "{nickname} Fuel average consumption liters per 100 km"
+            }
+        },
+        "device_tracker": {
+            "position": {
+                "name": "{nickname} Position"
+            },
+            "position_wgs84": {
+                "name": "{nickname} Position WGS84"
             }
         }
     }
