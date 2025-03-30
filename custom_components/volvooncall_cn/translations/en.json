@@ -141,7 +141,21 @@
                 "name": "{nickname} Fuel amount"
             },
             "service_warning_msg": {
-                "name": "{nickname} Service Warning Message"
+                "name": "{nickname} Service Warning Message",
+                "state": {
+                    "0": "UNSPECIFIED",
+                    "1": "NO WARNING",
+                    "2": "UNKNOWN WARNING",
+                    "3": "REGULAR MAINTENANCE ALMOST TIME FOR SERVICE",
+                    "4": "ENGINE HOURS ALMOST TIME FOR SERVICE",
+                    "5": "DISTANCE DRIVEN ALMOST TIME FOR SERVICE",
+                    "6": "REGULAR MAINTENANCE TIME FOR SERVICE",
+                    "7": "ENGINE HOURS TIME FOR SERVICE",
+                    "8": "DISTANCE DRIVEN TIME FOR SERVICE",
+                    "9": "REGULAR MAINTENANCE OVERDUE FOR SERVICE",
+                    "10": "ENGINE HOURS OVERDUE FOR SERVICE",
+                    "11": "DISTANCE DRIVEN OVERDUE FOR SERVICE"
+                }
             },
             "fuel_average_consumption_liters_per_100_km": {
                 "name": "{nickname} Fuel average consumption liters per 100 km"
