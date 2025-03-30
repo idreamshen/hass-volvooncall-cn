@@ -58,6 +58,33 @@
             },
             "position_wgs84": {
                 "name": "{nickname} Position WGS84"
+            },
+            "service_warning": {
+                "name": "{nickname} Service Warning"
+            },
+            "brake_fluid_level_warning": {
+                "name": "{nickname} Brake Fluid Level Warning"
+            },
+            "engine_coolant_level_warning": {
+                "name": "{nickname} Engine Coolant Level Warning"
+            },
+            "oil_level_warning": {
+                "name": "{nickname} Oil Level Warning"
+            },
+            "washer_fluid_level_warning": {
+                "name": "{nickname} Washer Fluid Level Warning"
+            },
+            "front_left_tyre_pressure_warning": {
+                "name": "{nickname} Front Left Tyre Pressure Warning"
+            },
+            "front_right_tyre_pressure_warning": {
+                "name": "{nickname} Front Right Tyre Pressure Warning"
+            },
+            "rear_left_tyre_pressure_warning": {
+                "name": "{nickname} Rear Left Tyre Pressure Warning"
+            },
+            "rear_right_tyre_pressure_warning": {
+                "name": "{nickname} Rear Right Tyre Pressure Warning"
             }
         },
         "switch": {
@@ -112,6 +139,12 @@
             },
             "fuel_amount": {
                 "name": "{nickname} Fuel amount"
+            },
+            "service_warning_msg": {
+                "name": "{nickname} Service Warning Message"
+            },
+            "fuel_average_consumption_liters_per_100_km": {
+                "name": "{nickname} Fuel average consumption liters per 100 km"
             }
         }
     }

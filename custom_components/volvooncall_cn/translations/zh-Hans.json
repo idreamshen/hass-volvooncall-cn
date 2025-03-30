@@ -58,6 +58,33 @@
             },
             "position_wgs84": {
                 "name": "{nickname}位置"
+            },
+            "service_warning": {
+                "name": "{nickname}保养警告"
+            },
+            "brake_fluid_level_warning": {
+                "name": "{nickname}刹车液警告"
+            },
+            "engine_coolant_level_warning": {
+                "name": "{nickname}发动机冷却液警告"
+            },
+            "oil_level_warning": {
+                "name": "{nickname}机油警告"
+            },
+            "washer_fluid_level_warning": {
+                "name": "{nickname}玻璃水警告"
+            },
+            "front_left_tyre_pressure_warning": {
+                "name": "{nickname}左前胎压警告"
+            },
+            "front_right_tyre_pressure_warning": {
+                "name": "{nickname}右前胎压警告"
+            },
+            "rear_left_tyre_pressure_warning": {
+                "name": "{nickname}左后胎压警告"
+            },
+            "rear_right_tyre_pressure_warning": {
+                "name": "{nickname}右后胎压警告"
             }
         },
         "switch": {
@@ -112,6 +139,12 @@
             },
             "odo_meter": {
                 "name": "{nickname}总里程"
+            },
+            "service_warning_msg": {
+                "name": "{nickname}保养警告信息"
+            },
+            "fuel_average_consumption_liters_per_100_km": {
+                "name": "{nickname}百公里油耗"
             }
         }
     }
