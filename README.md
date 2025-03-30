@@ -36,6 +36,7 @@ Homeassistant volvooncall 中国区插件
 | `button.{vin}_honk`                           | 鸣笛             |                                                           |
 | `switch.{vin}_sunroof_control`                | 远程控制天窗     | 仅在遮阳帘已打开时支持远程打开天窗（新款车型支持）        |
 | `switch.{vin}_tailgate_control`              | 远程控制尾箱     | 打开尾箱会同时解锁车辆,请注意及时锁车（新款车型支持）     |
+| `sensor.{vin}_fuel_average_consumption_liters_per_100_km` | 百公里油耗 |                                           |
 | `binary_sensor.{vin}_service_warning`              | 保养警告     |      |
 | `sensor.{vin}_service_warning_msg`              | 保养警告信息     | 无需保养、未知警告、定期保养即将到期、发动机工作时间即将需要保养、行驶里程即将需要保养、定期保养时间已到、发动机工作时间保养时间已到、行驶里程保养时间已到、定期保养已逾期、发动机工作时间保养已逾期、行驶里程保养已逾期 |
 | `binary_sensor.{vin}_brake_fluid_level_warning`              | 刹车液警告     |      |
