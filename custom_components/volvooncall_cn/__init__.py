@@ -337,12 +337,14 @@ metaMap = {
     }
 }
 
+
 class VolvoEntity(CoordinatorEntity):
-    def __init__(self, coordinator, idx, metaMapKey):
+    def __init__(self, coordinator, idx, metaMapKey, platform):
         """Pass coordinator to CoordinatorEntity."""
         super().__init__(coordinator, context=idx)
         self.idx = idx
         self.metaMapKey = metaMapKey
+        self.entity_id = f"{platform}.{self.coordinator.data[self.idx].vin}_{self.metaMapKey}"
 
     # @property
     # def name(self):

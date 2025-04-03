@@ -4,6 +4,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.switch import SwitchEntity
+from homeassistant.const import Platform
 
 from . import VolvoCoordinator, VolvoEntity
 from .volvooncall_cn import DOMAIN
@@ -32,7 +33,7 @@ async def async_setup_entry(
 
 class VolvoSwitchEntity(VolvoEntity, SwitchEntity):
     def __init__(self, coordinator, idx, metaKey, checkMetaKeys):
-        super().__init__(coordinator, idx, metaKey)
+        super().__init__(coordinator, idx, metaKey, Platform.SWITCH)
         self.checkMetaKeys = checkMetaKeys
 
     async def _update_status(self, is_on):

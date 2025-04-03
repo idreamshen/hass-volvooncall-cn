@@ -3,6 +3,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.number import NumberEntity
+from homeassistant.const import Platform
 from . import VolvoCoordinator, VolvoEntity
 from .volvooncall_cn import DOMAIN
 from propcache import cached_property
@@ -27,7 +28,7 @@ async def async_setup_entry(
 
 class VolovEngineDurationNumInput(VolvoEntity, NumberEntity):
     def __init__(self, coordinator, idx, metaMapKey):
-        super().__init__(coordinator, idx, metaMapKey)
+        super().__init__(coordinator, idx, metaMapKey, Platform.NUMBER)
         self.max_duration = 15
         self.min_duration = 1
 

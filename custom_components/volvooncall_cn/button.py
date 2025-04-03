@@ -3,6 +3,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.button import ButtonEntity
+from homeassistant.const import Platform
 
 from . import VolvoCoordinator, VolvoEntity
 from .volvooncall_cn import DOMAIN
@@ -19,7 +20,7 @@ async def async_setup_entry(
     coordinator: VolvoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     buttons = []
-    for idx, ent in enumerate(coordinator.data):
+    for idx, _ in enumerate(coordinator.data):
         buttons.append(VolvoFlashButton(coordinator, idx, "flash_button"))
         buttons.append(VolvoHonkFlashButton(coordinator, idx, "honk_flash_button"))
         buttons.append(VolvoHonkButton(coordinator, idx, "honk_button"))
@@ -31,7 +32,7 @@ class VolvoFlashButton(VolvoEntity, ButtonEntity):
     """Representation of a Volvo Cars button."""
 
     def __init__(self, coordinator, idx, metaMapKey):
-        super().__init__(coordinator, idx, metaMapKey)
+        super().__init__(coordinator, idx, metaMapKey, Platform.BUTTON)
 
     async def async_press(self) -> None:
         await self.coordinator.data[self.idx].flash()
@@ -41,7 +42,7 @@ class VolvoHonkFlashButton(VolvoEntity, ButtonEntity):
     """Representation of a Volvo Cars button."""
 
     def __init__(self, coordinator, idx, metaMapKey):
-        super().__init__(coordinator, idx, metaMapKey)
+        super().__init__(coordinator, idx, metaMapKey, Platform.BUTTON)
 
     async def async_press(self) -> None:
         await self.coordinator.data[self.idx].honk_and_flash()
@@ -51,7 +52,7 @@ class VolvoHonkButton(VolvoEntity, ButtonEntity):
     """Representation of a Volvo Cars button."""
 
     def __init__(self, coordinator, idx, metaMapKey):
-        super().__init__(coordinator, idx, metaMapKey)
+        super().__init__(coordinator, idx, metaMapKey, Platform.BUTTON)
 
     async def async_press(self) -> None:
         await self.coordinator.data[self.idx].honk()

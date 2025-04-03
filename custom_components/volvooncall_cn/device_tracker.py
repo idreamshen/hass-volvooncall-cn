@@ -2,18 +2,11 @@ from __future__ import annotations
 
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
+from homeassistant.const import Platform
 
 from . import VolvoCoordinator, VolvoEntity
-from . import metaMap
 from .volvooncall_cn import DOMAIN
 
 
@@ -26,7 +19,7 @@ async def async_setup_entry(
     coordinator: VolvoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
-    for idx, ent in enumerate(coordinator.data):
+    for idx, _ in enumerate(coordinator.data):
         entities.append(VolvoSensor(coordinator, idx, "position"))
         entities.append(VolvoSensor(coordinator, idx, "position_wgs84"))
 
@@ -36,7 +29,7 @@ async def async_setup_entry(
 class VolvoSensor(VolvoEntity, TrackerEntity):
     def __init__(self, coordinator, idx, metaMapKey):
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, idx, metaMapKey)
+        super().__init__(coordinator, idx, metaMapKey, Platform.DEVICE_TRACKER)
 
     @property
     def source_type(self):

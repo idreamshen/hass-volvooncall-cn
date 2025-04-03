@@ -1,22 +1,15 @@
 from __future__ import annotations
 import asyncio
+import logging
 from homeassistant.components.lock import (
     LockEntity,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
-import logging
+from homeassistant.const import Platform
 
 from . import VolvoCoordinator, VolvoEntity
-from . import metaMap
 from .volvooncall_cn import DOMAIN
 from .volvooncall_base import MAX_RETRIES
 
@@ -52,7 +45,7 @@ class VolvoSensor(VolvoEntity, LockEntity):
 
     def __init__(self, coordinator, idx, metaMapKey):
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, idx, metaMapKey)
+        super().__init__(coordinator, idx, metaMapKey, Platform.LOCK)
 
     @property
     def is_locked(self) -> bool | None:
@@ -79,7 +72,7 @@ class VolvoSensor(VolvoEntity, LockEntity):
 
 class VolvoWindowSensor(VolvoEntity, LockEntity):
     def __init__(self, coordinator, idx, metaMapKey):
-        super().__init__(coordinator, idx, metaMapKey)
+        super().__init__(coordinator, idx, metaMapKey, Platform.LOCK)
 
     @property
     def is_locked(self) -> bool:
