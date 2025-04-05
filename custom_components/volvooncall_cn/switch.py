@@ -83,7 +83,7 @@ class VolvoTailgateSwitch(VolvoSwitchEntity):
 
     async def async_turn_on(self) -> None:
         coordinator = self.coordinator.data[self.idx]
-        await coordinator.unlock_vehicle()
+        await coordinator.unlock_vehicle_trunk_only()
         await coordinator.tail_gate_control_open()
         await self._update_status(True)
 

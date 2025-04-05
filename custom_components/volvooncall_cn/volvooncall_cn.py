@@ -204,10 +204,12 @@ class VehicleAPI(VehicleBaseAPI):
             break
         return
 
-    async def door_unlock(self, vin):
+    async def door_unlock(self, vin, unlockType):
         stub = InvocationServiceStub(self.channel)
         req_header = invocationHead(vin=vin)
-        req = UnlockReq(head=req_header, unlockType=UnlockType.TRUNK_ONLY)
+        req = UnlockReq(head=req_header)
+        if unlockType != UnlockType.UNLOCK_UNSPECIFIED:
+            req = UnlockReq(head=req_header, unlockType=unlockType)
         metadata: list = [("vin", vin)]
         res: invocationCommResp = invocationCommResp()
         for res in stub.Unlock(req, metadata=metadata, timeout=TIMEOUT.seconds):
@@ -505,7 +507,10 @@ class Vehicle(object):
         await self._api.door_lock(self.vin)
 
     async def unlock_vehicle(self):
-        await self._api.door_unlock(self.vin)
+        await self._api.door_unlock(self.vin, UnlockType.UNLOCK_UNSPECIFIED)
+
+    async def unlock_vehicle_trunk_only(self):
+        await self._api.door_unlock(self.vin, UnlockType.TRUNK_ONLY)
 
     async def flash(self):
         await self._api.honk_flash_control(self.vin, HonkFlashType.FLASH)
