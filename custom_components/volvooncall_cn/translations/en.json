@@ -1,13 +1,167 @@
 {
-  "config": {
-    "step": {
-      "user": {
-        "description": "Setup Volvo On Call",
-        "data": {
-          "username": "Username",
-          "password": "Password"
+    "config": {
+        "step": {
+            "user": {
+                "description": "Setup Volvo On Call",
+                "data": {
+                    "username": "Username",
+                    "password": "Password"
+                }
+            }
         }
-      }
+    },
+    "entity": {
+        "binary_sensor": {
+            "tail_gate_open": {
+                "name": "{nickname} Tail gate"
+            },
+            "rear_right_door_open": {
+                "name": "{nickname} Rear right door"
+            },
+            "rear_left_door_open": {
+                "name": "{nickname} Rear left door"
+            },
+            "front_right_door_open": {
+                "name": "{nickname} Front right door"
+            },
+            "front_left_door_open": {
+                "name": "{nickname} Front left door"
+            },
+            "hood_open": {
+                "name": "{nickname} Hood"
+            },
+            "sunroof_open": {
+                "name": "{nickname} Sunroof"
+            },
+            "engine_running": {
+                "name": "{nickname} Engine"
+            },
+            "front_left_window_open": {
+                "name": "{nickname} Front left window",
+                "state_attributes": {
+                    "open_status_ajar": {
+                        "name": "Ajar"
+                    }
+                }
+            },
+            "front_right_window_open": {
+                "name": "{nickname} Front right window"
+            },
+            "rear_left_window_open": {
+                "name": "{nickname} Rear left window"
+            },
+            "rear_right_window_open": {
+                "name": "{nickname} Rear right window"
+            },
+            "service_warning": {
+                "name": "{nickname} Service Warning"
+            },
+            "brake_fluid_level_warning": {
+                "name": "{nickname} Brake Fluid Level Warning"
+            },
+            "engine_coolant_level_warning": {
+                "name": "{nickname} Engine Coolant Level Warning"
+            },
+            "oil_level_warning": {
+                "name": "{nickname} Oil Level Warning"
+            },
+            "washer_fluid_level_warning": {
+                "name": "{nickname} Washer Fluid Level Warning"
+            },
+            "front_left_tyre_pressure_warning": {
+                "name": "{nickname} Front Left Tyre Pressure Warning"
+            },
+            "front_right_tyre_pressure_warning": {
+                "name": "{nickname} Front Right Tyre Pressure Warning"
+            },
+            "rear_left_tyre_pressure_warning": {
+                "name": "{nickname} Rear Left Tyre Pressure Warning"
+            },
+            "rear_right_tyre_pressure_warning": {
+                "name": "{nickname} Rear Right Tyre Pressure Warning"
+            }
+        },
+        "switch": {
+            "engine_switch": {
+                "name": "{nickname} Engine Remote control",
+                "state_attributes": {
+                    "remote_start_at": {
+                        "name": "Engine Start Time"
+                    },
+                    "remote_end_at": {
+                        "name": "Engine End Time"
+                    }
+                }
+            },
+            "tail_gate_switch": {
+                "name": "{nickname} Tailgate control"
+            },
+            "sunroof_switch": {
+                "name": "{nickname} Sunroof control"
+            }
+        },
+        "button": {
+            "flash_button": {
+                "name": "{nickname} Flash"
+            },
+            "honk_flash_button": {
+                "name": "{nickname} Honk And Flash"
+            },
+            "honk_button": {
+                "name": "{nickname} Honk"
+            }
+        },
+        "number": {
+            "engine_duration_number": {
+                "name": "{nickname} Engine Duration"
+            }
+        },
+        "lock": {
+            "car_lock": {
+                "name": "{nickname} Car Lock"
+            },
+            "window_lock": {
+                "name": "{nickname} Winodw Lock"
+            }
+        },
+        "sensor": {
+            "distance_to_empty": {
+                "name": "{nickname} Distance to empty"
+            },
+            "odo_meter": {
+                "name": "{nickname} Odometer"
+            },
+            "fuel_amount": {
+                "name": "{nickname} Fuel amount"
+            },
+            "service_warning_msg": {
+                "name": "{nickname} Service Warning Message",
+                "state": {
+                    "0": "UNSPECIFIED",
+                    "1": "NO WARNING",
+                    "2": "UNKNOWN WARNING",
+                    "3": "REGULAR MAINTENANCE ALMOST TIME FOR SERVICE",
+                    "4": "ENGINE HOURS ALMOST TIME FOR SERVICE",
+                    "5": "DISTANCE DRIVEN ALMOST TIME FOR SERVICE",
+                    "6": "REGULAR MAINTENANCE TIME FOR SERVICE",
+                    "7": "ENGINE HOURS TIME FOR SERVICE",
+                    "8": "DISTANCE DRIVEN TIME FOR SERVICE",
+                    "9": "REGULAR MAINTENANCE OVERDUE FOR SERVICE",
+                    "10": "ENGINE HOURS OVERDUE FOR SERVICE",
+                    "11": "DISTANCE DRIVEN OVERDUE FOR SERVICE"
+                }
+            },
+            "fuel_average_consumption_liters_per_100_km": {
+                "name": "{nickname} Fuel average consumption liters per 100 km"
+            }
+        },
+        "device_tracker": {
+            "position": {
+                "name": "{nickname} Position"
+            },
+            "position_wgs84": {
+                "name": "{nickname} Position WGS84"
+            }
+        }
     }
-  }
 }

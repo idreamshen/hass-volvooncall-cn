@@ -1,21 +1,11 @@
 from __future__ import annotations
-from homeassistant.components.binary_sensor import (
-    DEVICE_CLASSES_SCHEMA,
-    BinarySensorEntity,
-)
+from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
+from homeassistant.const import Platform
 
 from . import VolvoCoordinator, VolvoEntity
-from . import metaMap
 from .volvooncall_cn import DOMAIN
 
 
@@ -68,7 +58,7 @@ class VolvoSensor(VolvoEntity, BinarySensorEntity):
 
     def __init__(self, coordinator, idx, metaMapKey):
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, idx, metaMapKey)
+        super().__init__(coordinator, idx, metaMapKey, Platform.BINARY_SENSOR)
 
     @property
     def is_on(self) -> bool | None:

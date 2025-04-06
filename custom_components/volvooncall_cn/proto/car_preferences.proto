@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package car_preferences;
+
+
+service CarPreferences {
+  rpc GetPreferences(GetPreferencesReq) returns(stream GetPreferencesResp) {}
+  rpc UpdatePreferences(UpdatePreferencesReq) returns(stream UpdatePreferencesResp) {}
+}
+
+message GetPreferencesReq{
+  string vin = 1;
+}
+
+message Preference {
+    string nickName = 1;
+}
+
+message GetPreferencesResp{
+  Preference preference = 1;
+}
+
+message UpdatePreferencesReq {
+  string vin = 1;
+  Preference preference = 2;
+}
+
+message UpdatePreferencesResp {
+}

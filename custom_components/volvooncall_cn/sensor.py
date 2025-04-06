@@ -5,8 +5,8 @@ import logging
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.const import Platform
 
 from . import VolvoCoordinator, VolvoEntity, metaMap
 from .volvooncall_cn import DOMAIN
@@ -23,7 +23,7 @@ async def async_setup_entry(
     coordinator: VolvoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     entities = []
-    for idx, ent in enumerate(coordinator.data):
+    for idx, _ in enumerate(coordinator.data):
         entities.append(VolvoSensor(coordinator, idx, "distance_to_empty"))
         entities.append(VolvoSensor(coordinator, idx, "odo_meter"))
         entities.append(VolvoSensor(coordinator, idx, "fuel_amount"))
@@ -46,7 +46,7 @@ class VolvoSensor(VolvoEntity, SensorEntity):
 
     def __init__(self, coordinator, idx, metaMapKey):
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, idx, metaMapKey)
+        super().__init__(coordinator, idx, metaMapKey, Platform.SENSOR)
 
     @callback
     def _handle_coordinator_update(self) -> None:

@@ -28,6 +28,9 @@ from .proto.dtlinternet_pb2_grpc import DtlInternetServiceStub
 from .proto.dtlinternet_pb2 import StreamLastKnownLocationsReq, StreamLastKnownLocationsResp
 from .proto.engineremotestart_pb2_grpc import EngineRemoteStartServiceStub
 from .proto.engineremotestart_pb2 import GetEngineRemoteStartReq, GetEngineRemoteStartResp, EngineRunningStatus
+from .proto.car_preferences_pb2_grpc import CarPreferencesStub
+from .proto.car_preferences_pb2 import GetPreferencesReq, GetPreferencesResp
+from .proto.car_preferences_pb2 import UpdatePreferencesReq, UpdatePreferencesResp, Preference
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -38,22 +41,6 @@ USER_AGENT = "vca-android/5.51.1 grpc-java-okhttp/1.68.0"
 MAX_RETRIES = 1
 TIMEOUT = datetime.timedelta(seconds=10)
 DOMAIN = "volvooncall_cn"
-
-# Map service_warning enum to Chinese text
-service_warning_msg_map = {
-    0: "未指定",  # SERVICE_WARNING_UNSPECIFIED
-    1: "无需保养",  # SERVICE_WARNING_NO_WARNING
-    2: "未知警告",  # SERVICE_WARNING_UNKNOWN_WARNING
-    3: "定期保养即将到期",  # SERVICE_WARNING_REGULAR_MAINTENANCE_ALMOST_TIME_FOR_SERVICE
-    4: "发动机工作时间即将需要保养",  # SERVICE_WARNING_ENGINE_HOURS_ALMOST_TIME_FOR_SERVICE
-    5: "行驶里程即将需要保养",  # SERVICE_WARNING_DISTANCE_DRIVEN_ALMOST_TIME_FOR_SERVICE
-    6: "定期保养时间已到",  # SERVICE_WARNING_REGULAR_MAINTENANCE_TIME_FOR_SERVICE
-    7: "发动机工作时间保养时间已到",  # SERVICE_WARNING_ENGINE_HOURS_TIME_FOR_SERVICE
-    8: "行驶里程保养时间已到",  # SERVICE_WARNING_DISTANCE_DRIVEN_TIME_FOR_SERVICE
-    9: "定期保养已逾期",  # SERVICE_WARNING_REGULAR_MAINTENANCE_OVERDUE_FOR_SERVICE
-    10: "发动机工作时间保养已逾期",  # SERVICE_WARNING_ENGINE_HOURS_OVERDUE_FOR_SERVICE
-    11: "行驶里程保养已逾期"  # SERVICE_WARNING_DISTANCE_DRIVEN_OVERDUE_FOR_SERVICE
-}
 
 
 def isWindowOpen(status) -> bool:
@@ -217,10 +204,12 @@ class VehicleAPI(VehicleBaseAPI):
             break
         return
 
-    async def door_unlock(self, vin):
+    async def door_unlock(self, vin, unlockType):
         stub = InvocationServiceStub(self.channel)
         req_header = invocationHead(vin=vin)
-        req = UnlockReq(head=req_header, unlockType=UnlockType.TRUNK_ONLY)
+        req = UnlockReq(head=req_header)
+        if unlockType != UnlockType.UNLOCK_UNSPECIFIED:
+            req = UnlockReq(head=req_header, unlockType=unlockType)
         metadata: list = [("vin", vin)]
         res: invocationCommResp = invocationCommResp()
         for res in stub.Unlock(req, metadata=metadata, timeout=TIMEOUT.seconds):
@@ -276,6 +265,28 @@ class VehicleAPI(VehicleBaseAPI):
             break
         return
 
+    async def get_car_preferences(self, vin: str):
+        stub = CarPreferencesStub(self.channel)
+        req = GetPreferencesReq(vin=vin)
+        metadata: list = [("vin", vin)]
+        res: GetPreferencesResp = GetPreferencesResp()
+        for res in stub.GetPreferences(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug(res)
+            break
+        return res
+
+    async def update_car_preference(self, vin: str, nickname: str):
+        stub = CarPreferencesStub(self.channel)
+        preference = Preference(nickName=nickname)
+        req = UpdatePreferencesReq(vin=vin, preference=preference)
+        metadata: list = [("vin", vin)]
+        res: UpdatePreferencesResp = UpdatePreferencesResp()
+        for res in stub.UpdatePreferences(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            _LOGGER.debug(res)
+            break
+        return res
+
+
 class Vehicle(object):
     def __init__(self, vin, api, isAaos):
         self.vin = vin
@@ -309,6 +320,8 @@ class Vehicle(object):
         self.tank_lid_open = False
         self.availability_status = AvailabilityStatus.Available
         self.unavailable_reason = AvailabilityReason.Unspecified1
+        self.engine_remote_start_time = 0
+        self.engine_remote_end_time = 0
         # self.fuel_amount_level = 0
         self.position = {
             "longitude": 0.0,
@@ -318,7 +331,7 @@ class Vehicle(object):
             "longitude": 0.0,
             "latitude": 0.0
         }
-        self.service_warning_msg = "无需保养"
+        self.service_warning_msg = "1"
         self.service_warning = False
         self.brake_fluid_level_warning = False
         self.engine_coolant_level_warning = False
@@ -328,6 +341,7 @@ class Vehicle(object):
         self.front_right_tyre_pressure_warning = False
         self.rear_left_tyre_pressure_warning = False
         self.rear_right_tyre_pressure_warning = False
+        self.nickname = ""
 
     async def _parse_exterior(self):
         try:
@@ -367,7 +381,7 @@ class Vehicle(object):
             health_status: HealthStatus = health_resp.data
 
             # Set the service_warning field based on the enum value
-            self.service_warning_msg = service_warning_msg_map.get(health_status.service_warning, "未知状态")
+            self.service_warning_msg = health_status.service_warning
             self.service_warning = health_status.service_warning > 1
             self.brake_fluid_level_warning = health_status.brake_fluid_level_warning > 1
             self.engine_coolant_level_warning = health_status.engine_coolant_level_warning > 1
@@ -377,7 +391,7 @@ class Vehicle(object):
             self.front_right_tyre_pressure_warning = health_status.front_right_tyre_pressure_warning > 1
             self.rear_left_tyre_pressure_warning = health_status.rear_left_tyre_pressure_warning > 1
             self.rear_right_tyre_pressure_warning = health_status.rear_right_tyre_pressure_warning > 1
-            
+
         except Exception as err:
             _LOGGER.error(err)
             return
@@ -446,6 +460,18 @@ class Vehicle(object):
             self.engine_running = True
         else:
             self.engine_remote_running = False
+        self.engine_remote_start_time = engine_data.engineStartTime
+        self.engine_remote_end_time = engine_data.engineEndTime
+
+    async def _parse_car_preference(self):
+        try:
+            preference_resp: GetPreferencesResp = await self._api.get_car_preferences(self.vin)
+            _LOGGER.debug("preference:%s", preference_resp)
+        except Exception as err:
+            _LOGGER.error(err)
+            return
+        if preference_resp and preference_resp.preference:
+            self.nickname = preference_resp.preference.nickName
 
     async def update(self):
         if not self.series_name:
@@ -464,7 +490,7 @@ class Vehicle(object):
             funcs = [self._parse_exterior, self._parse_odometer,
                      self._parse_fuel, self._parse_availability,
                      self._parse_location, self._parse_engine_status,
-                     self._parse_health]
+                     self._parse_health, self._parse_car_preference]
             for runf in funcs:
                 task = tg.create_task(runf())
                 tasks.append(task)
@@ -481,7 +507,10 @@ class Vehicle(object):
         await self._api.door_lock(self.vin)
 
     async def unlock_vehicle(self):
-        await self._api.door_unlock(self.vin)
+        await self._api.door_unlock(self.vin, UnlockType.UNLOCK_UNSPECIFIED)
+
+    async def unlock_vehicle_trunk_only(self):
+        await self._api.door_unlock(self.vin, UnlockType.TRUNK_ONLY)
 
     async def flash(self):
         await self._api.honk_flash_control(self.vin, HonkFlashType.FLASH)
@@ -520,4 +549,3 @@ class Vehicle(object):
 
     async def sunroof_control_close(self):
         await self._api.sunroof_contorl(self.vin, invocationControlType.CLOSE)
-

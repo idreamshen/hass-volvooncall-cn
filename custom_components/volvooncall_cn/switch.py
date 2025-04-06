@@ -4,6 +4,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.switch import SwitchEntity
+from homeassistant.const import Platform
 
 from . import VolvoCoordinator, VolvoEntity
 from .volvooncall_cn import DOMAIN
@@ -32,7 +33,7 @@ async def async_setup_entry(
 
 class VolvoSwitchEntity(VolvoEntity, SwitchEntity):
     def __init__(self, coordinator, idx, metaKey, checkMetaKeys):
-        super().__init__(coordinator, idx, metaKey)
+        super().__init__(coordinator, idx, metaKey, Platform.SWITCH)
         self.checkMetaKeys = checkMetaKeys
 
     async def _update_status(self, is_on):
@@ -64,6 +65,16 @@ class VolvoEngineSwitch(VolvoSwitchEntity):
         await self.coordinator.data[self.idx].engine_stop()
         await self._update_status(False)
 
+    @property
+    def extra_state_attributes(self):
+        start_time = "engine_remote_start_time"
+        end_time = "engine_remote_end_time"
+        data = self.coordinator.data[self.idx]
+        return {
+            "remote_start_at": data.get(start_time),
+            "remote_end_at": data.get(end_time)
+        }
+
 
 class VolvoTailgateSwitch(VolvoSwitchEntity):
     def __init__(self, coordinator, idx, metaKey):
@@ -72,7 +83,7 @@ class VolvoTailgateSwitch(VolvoSwitchEntity):
 
     async def async_turn_on(self) -> None:
         coordinator = self.coordinator.data[self.idx]
-        await coordinator.unlock_vehicle()
+        await coordinator.unlock_vehicle_trunk_only()
         await coordinator.tail_gate_control_open()
         await self._update_status(True)
 
