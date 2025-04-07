@@ -45,13 +45,28 @@
                 }
             },
             "front_right_window_open": {
-                "name": "{nickname}前右窗"
+                "name": "{nickname}前右窗",
+                "state_attributes": {
+                    "open_status_ajar": {
+                        "name": "仅开一条缝"
+                    }
+                }
             },
             "rear_left_window_open": {
-                "name": "{nickname}后左窗"
+                "name": "{nickname}后左窗",
+                "state_attributes": {
+                    "open_status_ajar": {
+                        "name": "仅开一条缝"
+                    }
+                }
             },
             "rear_right_window_open": {
-                "name": "{nickname}后右窗"
+                "name": "{nickname}后右窗",
+                "state_attributes": {
+                    "open_status_ajar": {
+                        "name": "仅开一条缝"
+                    }
+                }
             },
             "service_warning": {
                 "name": "{nickname}保养警告"
