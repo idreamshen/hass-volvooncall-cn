@@ -45,13 +45,28 @@
                 }
             },
             "front_right_window_open": {
-                "name": "{nickname} Front right window"
+                "name": "{nickname} Front right window",
+                "state_attributes": {
+                    "open_status_ajar": {
+                        "name": "Ajar"
+                    }
+                }
             },
             "rear_left_window_open": {
-                "name": "{nickname} Rear left window"
+                "name": "{nickname} Rear left window",
+                "state_attributes": {
+                    "open_status_ajar": {
+                        "name": "Ajar"
+                    }
+                }
             },
             "rear_right_window_open": {
-                "name": "{nickname} Rear right window"
+                "name": "{nickname} Rear right window",
+                "state_attributes": {
+                    "open_status_ajar": {
+                        "name": "Ajar"
+                    }
+                }
             },
             "service_warning": {
                 "name": "{nickname} Service Warning"
