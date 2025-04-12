@@ -16,6 +16,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
+from .store import VolvoStore
 from .volvooncall_cn import VehicleAPI
 from .volvooncall_cn import Vehicle
 from .volvooncall_cn import DOMAIN
@@ -69,6 +70,7 @@ class VolvoCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=30),
         )
         self.volvo_api = volvo_api
+        self.store_datas = []
 
     async def _async_update_data(self):
         """Fetch data from API endpoint.
@@ -93,6 +95,10 @@ class VolvoCoordinator(DataUpdateCoordinator):
                     vehicle = Vehicle(vin, self.volvo_api, isAaos)
                     await vehicle.update()
                     vehicles.append(vehicle)
+
+                    store_data = VolvoStore(self.hass, vin)
+                    await store_data.load_create_data()
+                    self.store_datas.append(store_data)
 
                 return vehicles
         except Exception as err:
@@ -382,10 +388,6 @@ class VolvoEntity(CoordinatorEntity):
         self.idx = idx
         self.metaMapKey = metaMapKey
         self.entity_id = f"{platform}.{self.coordinator.data[self.idx].vin}_{metaMap[self.metaMapKey]['entity_id']}"
-
-    # @property
-    # def name(self):
-      # return f"{self.coordinator.data[self.idx].vin} {metaMap[self.metaMapKey]['name']}"
 
     @property
     def icon(self):

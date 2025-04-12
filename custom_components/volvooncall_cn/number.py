@@ -1,4 +1,5 @@
 import logging
+from propcache import cached_property
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -6,7 +7,6 @@ from homeassistant.components.number import NumberEntity
 from homeassistant.const import Platform
 from . import VolvoCoordinator, VolvoEntity
 from .volvooncall_cn import DOMAIN
-from propcache import cached_property
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,34 +32,29 @@ class VolovEngineDurationNumInput(VolvoEntity, NumberEntity):
         self.max_duration = 15
         self.min_duration = 1
 
-    @property
-    def max_value(self) -> float:
-        return self.max_duration
-
     @cached_property
     def native_max_value(self) -> float:
         return self.max_duration
-
-    @property
-    def min_value(self):
-        return self.min_duration
 
     @cached_property
     def native_min_value(self) -> float:
         return self.min_duration
 
-    @property
-    def step(self):
-        return 1
-
     @cached_property
     def native_step(self) -> float:
         return 1
 
-    @property
-    def value(self):
-        return self.coordinator.data[self.idx].get_engine_duration()
+    @cached_property
+    def native_value(self):
+       store_data = self.coordinator.store_datas[self.idx]
+       return store_data.get_engine_duration_number()
 
-    async def async_set_value(self, value):
-        await self.coordinator.data[self.idx].set_engine_duration(value)
+    @property
+    def state(self):
+        store_data = self.coordinator.store_datas[self.idx]
+        return store_data.get_engine_duration_number()
+
+    async def async_set_native_value(self, value):
+        store_data = self.coordinator.store_datas[self.idx]
+        await store_data.set_engine_duration_number(value)
         await self.coordinator.async_refresh()
