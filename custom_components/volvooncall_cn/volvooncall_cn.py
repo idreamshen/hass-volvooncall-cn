@@ -458,8 +458,8 @@ class Vehicle(object):
             self.engine_running = True
         else:
             self.engine_remote_running = False
-        self.engine_remote_start_time = engine_data.engineStartTime
-        self.engine_remote_end_time = engine_data.engineEndTime
+        self.engine_remote_start_time = engine_data.engineStartTime.seconds
+        self.engine_remote_end_time = engine_data.engineEndTime.seconds
 
     async def _parse_car_preference(self):
         try:
