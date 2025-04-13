@@ -46,8 +46,8 @@ message GetEngineRemoteStartData {
   Timestamp updateTime = 1;
   EngineRunningStatus engineRunningStatus = 2;
   EngineErrorType engineError = 3;
-  int64 engineStartTime = 4;
-  int64 engineEndTime = 5;
+  Timestamp engineStartTime = 4;
+  Timestamp engineEndTime = 5;
 
 }
 message GetEngineRemoteStartResp {

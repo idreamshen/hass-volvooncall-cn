@@ -54,7 +54,6 @@ class VehicleAPI(VehicleBaseAPI):
         self.channel_token: str = ""
         self.lbs_channel = None
         self.lbs_channel_token: str = ""
-        self.engine_duration = 5
 
     async def gen_channel(self, token, target):
         callCreds = grpc.access_token_call_credentials(token)
@@ -163,12 +162,11 @@ class VehicleAPI(VehicleBaseAPI):
             break
         return res
 
-    async def engine_control(self, vin, isStart: bool):
+    async def engine_control(self, vin, isStart: bool, duration: int):
         stub = InvocationServiceStub(self.channel)
         req_header = invocationHead(vin=vin)
         req = EngineStartReq()
         if isStart:
-            duration = int(self.engine_duration)
             req = EngineStartReq(head=req_header, isStart=isStart, startDurationMin=duration)
         else:
             req = EngineStartReq(head=req_header, isStart=isStart)
@@ -460,8 +458,8 @@ class Vehicle(object):
             self.engine_running = True
         else:
             self.engine_remote_running = False
-        self.engine_remote_start_time = engine_data.engineStartTime
-        self.engine_remote_end_time = engine_data.engineEndTime
+        self.engine_remote_start_time = engine_data.engineStartTime.seconds
+        self.engine_remote_end_time = engine_data.engineEndTime.seconds
 
     async def _parse_car_preference(self):
         try:
@@ -521,17 +519,11 @@ class Vehicle(object):
     async def honk(self):
         await self._api.honk_flash_control(self.vin, HonkFlashType.HONK)
 
-    async def engine_start(self):
-        await self._api.engine_control(self.vin, True)
+    async def engine_start(self, duration):
+        await self._api.engine_control(self.vin, True, duration)
 
     async def engine_stop(self):
-        await self._api.engine_control(self.vin, False)
-
-    async def set_engine_duration(self, durationMin):
-        self._api.engine_duration = durationMin
-
-    def get_engine_duration(self) -> float:
-        return self._api.engine_duration
+        await self._api.engine_control(self.vin, False, 0)
 
     def get(self, key):
         if not hasattr(self, key):

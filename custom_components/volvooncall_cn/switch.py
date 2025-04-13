@@ -58,7 +58,8 @@ class VolvoEngineSwitch(VolvoSwitchEntity):
         super().__init__(coordinator, idx, metaKey, check_meta_keys)
 
     async def async_turn_on(self) -> None:
-        await self.coordinator.data[self.idx].engine_start()
+        duration = self.coordinator.store_datas[self.idx].get_engine_duration_number()
+        await self.coordinator.data[self.idx].engine_start(duration)
         await self._update_status(True)
 
     async def async_turn_off(self) -> None:

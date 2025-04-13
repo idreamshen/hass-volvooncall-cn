@@ -79,9 +79,9 @@ class GetEngineRemoteStartData(_message.Message):
     updateTime: Timestamp
     engineRunningStatus: EngineRunningStatus
     engineError: EngineErrorType
-    engineStartTime: int
-    engineEndTime: int
-    def __init__(self, updateTime: _Optional[_Union[Timestamp, _Mapping]] = ..., engineRunningStatus: _Optional[_Union[EngineRunningStatus, str]] = ..., engineError: _Optional[_Union[EngineErrorType, str]] = ..., engineStartTime: _Optional[int] = ..., engineEndTime: _Optional[int] = ...) -> None: ...
+    engineStartTime: Timestamp
+    engineEndTime: Timestamp
+    def __init__(self, updateTime: _Optional[_Union[Timestamp, _Mapping]] = ..., engineRunningStatus: _Optional[_Union[EngineRunningStatus, str]] = ..., engineError: _Optional[_Union[EngineErrorType, str]] = ..., engineStartTime: _Optional[_Union[Timestamp, _Mapping]] = ..., engineEndTime: _Optional[_Union[Timestamp, _Mapping]] = ...) -> None: ...
 
 class GetEngineRemoteStartResp(_message.Message):
     __slots__ = ("vin", "data")

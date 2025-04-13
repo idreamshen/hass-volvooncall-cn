@@ -24,25 +24,25 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17\x65ngineremotestart.proto\x12(services.vehiclestates.engineremotestart\"&\n\x17GetEngineRemoteStartReq\x12\x0b\n\x03vin\x18\x02 \x01(\t\"+\n\tTimestamp\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x03\"\xbf\x02\n\x18GetEngineRemoteStartData\x12G\n\nupdateTime\x18\x01 \x01(\x0b\x32\x33.services.vehiclestates.engineremotestart.Timestamp\x12Z\n\x13\x65ngineRunningStatus\x18\x02 \x01(\x0e\x32=.services.vehiclestates.engineremotestart.EngineRunningStatus\x12N\n\x0b\x65ngineError\x18\x03 \x01(\x0e\x32\x39.services.vehiclestates.engineremotestart.EngineErrorType\x12\x17\n\x0f\x65ngineStartTime\x18\x04 \x01(\x03\x12\x15\n\rengineEndTime\x18\x05 \x01(\x03\"y\n\x18GetEngineRemoteStartResp\x12\x0b\n\x03vin\x18\x02 \x01(\t\x12P\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x42.services.vehiclestates.engineremotestart.GetEngineRemoteStartData*\xc4\x02\n\x0f\x45ngineErrorType\x12\x0f\n\x0bUnspecifid1\x10\x00\x12\x16\n\x12\x45xceededMaxAttempt\x10\x01\x12\x0f\n\x0b\x43\x61rUnLocked\x10\x02\x12\x0c\n\x08KeyInCar\x10\x03\x12\x0c\n\x08\x44oorOpen\x10\x04\x12\x0c\n\x08HoodOpen\x10\x05\x12\x11\n\rIncorrectGear\x10\x06\x12\x0f\n\x0bPersonInCar\x10\x07\x12\x10\n\x0cPedalPressed\x10\x08\x12\x0b\n\x07LowFuel\x10\t\x12\x0e\n\nLowBattery\x10\n\x12\x15\n\x11LowBatteryAndFuel\x10\x0b\x12\x12\n\x0e\x43hargerPlugged\x10\x0c\x12\x16\n\x12\x45ngineCoolantFault\x10\r\x12\x17\n\x13\x42\x61tteryCoolantFault\x10\x0e\x12\x13\n\x0fServiceRequired\x10\x0f\x12\t\n\x05Other\x10\x10*X\n\x13\x45ngineRunningStatus\x12\x0f\n\x0bUnspecifid2\x10\x00\x12\x07\n\x03Off\x10\x01\x12\x0c\n\x08Starting\x10\x02\x12\x0b\n\x07Running\x10\x03\x12\x0c\n\x08Stopping\x10\x04\x32\xbe\x01\n\x18\x45ngineRemoteStartService\x12\xa1\x01\n\x14GetEngineRemoteStart\x12\x41.services.vehiclestates.engineremotestart.GetEngineRemoteStartReq\x1a\x42.services.vehiclestates.engineremotestart.GetEngineRemoteStartResp\"\x00\x30\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x17\x65ngineremotestart.proto\x12(services.vehiclestates.engineremotestart\"&\n\x17GetEngineRemoteStartReq\x12\x0b\n\x03vin\x18\x02 \x01(\t\"+\n\tTimestamp\x12\x0f\n\x07seconds\x18\x01 \x01(\x03\x12\r\n\x05nanos\x18\x02 \x01(\x03\"\xa9\x03\n\x18GetEngineRemoteStartData\x12G\n\nupdateTime\x18\x01 \x01(\x0b\x32\x33.services.vehiclestates.engineremotestart.Timestamp\x12Z\n\x13\x65ngineRunningStatus\x18\x02 \x01(\x0e\x32=.services.vehiclestates.engineremotestart.EngineRunningStatus\x12N\n\x0b\x65ngineError\x18\x03 \x01(\x0e\x32\x39.services.vehiclestates.engineremotestart.EngineErrorType\x12L\n\x0f\x65ngineStartTime\x18\x04 \x01(\x0b\x32\x33.services.vehiclestates.engineremotestart.Timestamp\x12J\n\rengineEndTime\x18\x05 \x01(\x0b\x32\x33.services.vehiclestates.engineremotestart.Timestamp\"y\n\x18GetEngineRemoteStartResp\x12\x0b\n\x03vin\x18\x02 \x01(\t\x12P\n\x04\x64\x61ta\x18\x03 \x01(\x0b\x32\x42.services.vehiclestates.engineremotestart.GetEngineRemoteStartData*\xc4\x02\n\x0f\x45ngineErrorType\x12\x0f\n\x0bUnspecifid1\x10\x00\x12\x16\n\x12\x45xceededMaxAttempt\x10\x01\x12\x0f\n\x0b\x43\x61rUnLocked\x10\x02\x12\x0c\n\x08KeyInCar\x10\x03\x12\x0c\n\x08\x44oorOpen\x10\x04\x12\x0c\n\x08HoodOpen\x10\x05\x12\x11\n\rIncorrectGear\x10\x06\x12\x0f\n\x0bPersonInCar\x10\x07\x12\x10\n\x0cPedalPressed\x10\x08\x12\x0b\n\x07LowFuel\x10\t\x12\x0e\n\nLowBattery\x10\n\x12\x15\n\x11LowBatteryAndFuel\x10\x0b\x12\x12\n\x0e\x43hargerPlugged\x10\x0c\x12\x16\n\x12\x45ngineCoolantFault\x10\r\x12\x17\n\x13\x42\x61tteryCoolantFault\x10\x0e\x12\x13\n\x0fServiceRequired\x10\x0f\x12\t\n\x05Other\x10\x10*X\n\x13\x45ngineRunningStatus\x12\x0f\n\x0bUnspecifid2\x10\x00\x12\x07\n\x03Off\x10\x01\x12\x0c\n\x08Starting\x10\x02\x12\x0b\n\x07Running\x10\x03\x12\x0c\n\x08Stopping\x10\x04\x32\xbe\x01\n\x18\x45ngineRemoteStartService\x12\xa1\x01\n\x14GetEngineRemoteStart\x12\x41.services.vehiclestates.engineremotestart.GetEngineRemoteStartReq\x1a\x42.services.vehiclestates.engineremotestart.GetEngineRemoteStartResp\"\x00\x30\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'engineremotestart_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_ENGINEERRORTYPE']._serialized_start=600
-  _globals['_ENGINEERRORTYPE']._serialized_end=924
-  _globals['_ENGINERUNNINGSTATUS']._serialized_start=926
-  _globals['_ENGINERUNNINGSTATUS']._serialized_end=1014
+  _globals['_ENGINEERRORTYPE']._serialized_start=706
+  _globals['_ENGINEERRORTYPE']._serialized_end=1030
+  _globals['_ENGINERUNNINGSTATUS']._serialized_start=1032
+  _globals['_ENGINERUNNINGSTATUS']._serialized_end=1120
   _globals['_GETENGINEREMOTESTARTREQ']._serialized_start=69
   _globals['_GETENGINEREMOTESTARTREQ']._serialized_end=107
   _globals['_TIMESTAMP']._serialized_start=109
   _globals['_TIMESTAMP']._serialized_end=152
   _globals['_GETENGINEREMOTESTARTDATA']._serialized_start=155
-  _globals['_GETENGINEREMOTESTARTDATA']._serialized_end=474
-  _globals['_GETENGINEREMOTESTARTRESP']._serialized_start=476
-  _globals['_GETENGINEREMOTESTARTRESP']._serialized_end=597
-  _globals['_ENGINEREMOTESTARTSERVICE']._serialized_start=1017
-  _globals['_ENGINEREMOTESTARTSERVICE']._serialized_end=1207
+  _globals['_GETENGINEREMOTESTARTDATA']._serialized_end=580
+  _globals['_GETENGINEREMOTESTARTRESP']._serialized_start=582
+  _globals['_GETENGINEREMOTESTARTRESP']._serialized_end=703
+  _globals['_ENGINEREMOTESTARTSERVICE']._serialized_start=1123
+  _globals['_ENGINEREMOTESTARTSERVICE']._serialized_end=1313
 # @@protoc_insertion_point(module_scope)
