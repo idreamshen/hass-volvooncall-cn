@@ -15,8 +15,10 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
+from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_SCAN_INTERVAL
 
 from .store import VolvoStore
+from .volvooncall_base import DEFAULT_SCAN_INTERVAL
 from .volvooncall_cn import VehicleAPI
 from .volvooncall_cn import Vehicle
 from .volvooncall_cn import DOMAIN
@@ -38,9 +40,12 @@ async def async_setup_entry(hass, entry):
     """Config entry example."""
     session = async_get_clientsession(hass)
 
-    volvo_api = VehicleAPI(session=session, username=entry.data["username"], password=entry.data["password"])
+    username = entry.data.get(CONF_USERNAME)
+    password = entry.data.get(CONF_PASSWORD)
+    interval = entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    volvo_api = VehicleAPI(session=session, username=username, password=password)
     hass.data.setdefault(DOMAIN, {})
-    coordinator = hass.data[DOMAIN][entry.entry_id] = VolvoCoordinator(hass, volvo_api)
+    coordinator = hass.data[DOMAIN][entry.entry_id] = VolvoCoordinator(hass, volvo_api, interval)
 
     # Fetch initial data so we have data when entities subscribe
     #
@@ -59,7 +64,7 @@ async def async_setup_entry(hass, entry):
 class VolvoCoordinator(DataUpdateCoordinator):
     """My custom coordinator."""
 
-    def __init__(self, hass, volvo_api):
+    def __init__(self, hass, volvo_api, scan_interval):
         """Initialize my coordinator."""
         super().__init__(
             hass,
@@ -67,7 +72,7 @@ class VolvoCoordinator(DataUpdateCoordinator):
             # Name of the data. For logging purposes.
             name="Volvo On Call CN sensor",
             # Polling interval. Will only be polled if there are subscribers.
-            update_interval=timedelta(seconds=30),
+            update_interval=timedelta(seconds=scan_interval),
         )
         self.volvo_api = volvo_api
         self.store_datas = []

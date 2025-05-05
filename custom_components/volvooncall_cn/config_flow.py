@@ -5,6 +5,7 @@ from homeassistant.const import *
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import voluptuous as vol
 from .volvooncall_base import VolvoAPIError
+from .volvooncall_base import DEFAULT_SCAN_INTERVAL
 from .volvooncall_cn import VehicleAPI
 from .volvooncall_cn import DOMAIN
 
@@ -42,6 +43,7 @@ class VolvoOnCallCnConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=vol.Schema(
                 {
                     vol.Required(CONF_USERNAME): str,
-                    vol.Required(CONF_PASSWORD): str
+                    vol.Required(CONF_PASSWORD): str,
+                    vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): vol.All(vol.Coerce(int), vol.Range(min=5)),
                 }), errors=errors
         )
