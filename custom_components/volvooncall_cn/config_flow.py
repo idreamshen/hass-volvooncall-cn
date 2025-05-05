@@ -73,6 +73,7 @@ class VolvoOnCallCnOptionsFlow(config_entries.OptionsFlow):
         username = user_input.get(CONF_USERNAME, vol.UNDEFINED)
         password = user_input.get(CONF_PASSWORD, vol.UNDEFINED)
         scan_interval = user_input.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+        errors = {}
         if init_done:
             errors = await volvo_validation(self.hass, username, password)
             if not errors:
