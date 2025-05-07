@@ -33,6 +33,7 @@ DIGITALVOLVO_URL = "https://apigateway.digitalvolvo.com"
 
 TIMEOUT = timedelta(seconds=10)
 MAX_RETRIES = 3
+DEFAULT_SCAN_INTERVAL = 30
 
 
 class VolvoAPIError(Exception):

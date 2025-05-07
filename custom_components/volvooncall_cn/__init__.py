@@ -3,20 +3,22 @@ import logging
 import async_timeout
 
 from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.core import callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
     UpdateFailed,
 )
+from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_SCAN_INTERVAL
 
 from .store import VolvoStore
+from .volvooncall_base import DEFAULT_SCAN_INTERVAL
 from .volvooncall_cn import VehicleAPI
 from .volvooncall_cn import Vehicle
 from .volvooncall_cn import DOMAIN
@@ -34,13 +36,34 @@ PLATFORMS = {
 _LOGGER = logging.getLogger(__name__)
 
 
+async def async_update_options(hass: HomeAssistant, config_entry: ConfigEntry):
+    # entry = {**config_entry.data, **config_entry.options}
+    config_data = {**config_entry.data, **config_entry.options}
+    entry_id = config_entry.entry_id
+
+    username = config_data.get(CONF_USERNAME)
+    password = config_data.get(CONF_PASSWORD)
+    interval = config_data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    _LOGGER.info("new interval: %s", interval)
+    session = async_get_clientsession(hass)
+    volvo_api = VehicleAPI(session=session, username=username, password=password)
+    hass.data.setdefault(DOMAIN, {})
+    if config_entry.entry_id in hass.data[DOMAIN]:
+        coordinator = hass.data[DOMAIN][entry_id]
+        coordinator.volvo_api = volvo_api
+        coordinator.update_interval = timedelta(seconds=interval)
+
+
 async def async_setup_entry(hass, entry):
     """Config entry example."""
     session = async_get_clientsession(hass)
 
-    volvo_api = VehicleAPI(session=session, username=entry.data["username"], password=entry.data["password"])
+    username = entry.data.get(CONF_USERNAME)
+    password = entry.data.get(CONF_PASSWORD)
+    interval = entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    volvo_api = VehicleAPI(session=session, username=username, password=password)
     hass.data.setdefault(DOMAIN, {})
-    coordinator = hass.data[DOMAIN][entry.entry_id] = VolvoCoordinator(hass, volvo_api)
+    coordinator = hass.data[DOMAIN][entry.entry_id] = VolvoCoordinator(hass, volvo_api, interval)
 
     # Fetch initial data so we have data when entities subscribe
     #
@@ -50,6 +73,8 @@ async def async_setup_entry(hass, entry):
     # If you do not want to retry setup on failure, use
     # coordinator.async_refresh() instead
     #
+    if not entry.update_listeners:
+        entry.add_update_listener(async_update_options)
     await coordinator.async_config_entry_first_refresh()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -59,7 +84,7 @@ async def async_setup_entry(hass, entry):
 class VolvoCoordinator(DataUpdateCoordinator):
     """My custom coordinator."""
 
-    def __init__(self, hass, volvo_api):
+    def __init__(self, hass, volvo_api, scan_interval):
         """Initialize my coordinator."""
         super().__init__(
             hass,
@@ -67,7 +92,7 @@ class VolvoCoordinator(DataUpdateCoordinator):
             # Name of the data. For logging purposes.
             name="Volvo On Call CN sensor",
             # Polling interval. Will only be polled if there are subscribers.
-            update_interval=timedelta(seconds=30),
+            update_interval=timedelta(seconds=scan_interval),
         )
         self.volvo_api = volvo_api
         self.store_datas = []
