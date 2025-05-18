@@ -55,8 +55,13 @@ class VehicleAPI(VehicleBaseAPI):
         self.lbs_channel = None
         self.lbs_channel_token: str = ""
 
+    def _metadata_callback(self, context, callback):
+        token = self._vocapi_access_token.strip()
+        metadata = [('authorization', f'Bearer {token}')]
+        callback(metadata, None)
+
     async def gen_channel(self, token, target):
-        callCreds = grpc.access_token_call_credentials(token)
+        callCreds = grpc.metadata_call_credentials(self._metadata_callback)
         sslCreds = grpc.ssl_channel_credentials()
         creds = grpc.composite_channel_credentials(sslCreds, callCreds)
         channel_options: tuple = (("grpc.primary_user_agent", USER_AGENT), ('grpc.accept_encoding', 'gzip'),)
