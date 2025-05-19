@@ -37,7 +37,7 @@ _LOGGER = logging.getLogger(__name__)
 
 GRPC_DIGITALVOLVO_HOST = "cepmobtoken.prod.c3.volvocars.com.cn:443"
 GRPC_LBS_VOLVO_HOST = "cepmobtoken.lbs.prod.c3.volvocars.com.cn:443"
-USER_AGENT = "vca-android/5.51.1 grpc-java-okhttp/1.68.0"
+USER_AGENT = "vca-android/5.53.1 grpc-java-okhttp/1.68.0"
 MAX_RETRIES = 1
 TIMEOUT = datetime.timedelta(seconds=10)
 DOMAIN = "volvooncall_cn"
@@ -51,12 +51,17 @@ class VehicleAPI(VehicleBaseAPI):
     def __init__(self, session, username, password):
         super(VehicleAPI, self).__init__(session, username, password)
         self.channel = None
-        self.channel_token: str = ""
         self.lbs_channel = None
-        self.lbs_channel_token: str = ""
+        self._channel_lock = asyncio.Lock()
+        self._lbs_channel_lock = asyncio.Lock()
 
-    async def gen_channel(self, token, target):
-        callCreds = grpc.access_token_call_credentials(token)
+    def _metadata_callback(self, context, callback):
+        token = self._vocapi_access_token.strip()
+        metadata = [('authorization', f'Bearer {token}')]
+        callback(metadata, None)
+
+    async def gen_channel(self, target):
+        callCreds = grpc.metadata_call_credentials(self._metadata_callback)
         sslCreds = grpc.ssl_channel_credentials()
         creds = grpc.composite_channel_credentials(sslCreds, callCreds)
         channel_options: tuple = (("grpc.primary_user_agent", USER_AGENT), ('grpc.accept_encoding', 'gzip'),)
@@ -64,16 +69,20 @@ class VehicleAPI(VehicleBaseAPI):
         return channel
 
     async def get_channel(self):
-        if self.channel and self.channel_token == self._vocapi_access_token.strip():
+        if self.channel:
             return
-        self.channel_token = self._vocapi_access_token.strip()
-        self.channel = await self.gen_channel(self.channel_token, GRPC_DIGITALVOLVO_HOST)
+
+        async with self._channel_lock:
+            if not self.channel:
+                self.channel = await self.gen_channel(GRPC_DIGITALVOLVO_HOST)
 
     async def get_lbs_channel(self):
-        if self.lbs_channel and self.lbs_channel_token == self._vocapi_access_token.strip():
+        if self.lbs_channel:
             return
-        self.lbs_channel_token = self._vocapi_access_token.strip()
-        self.lbs_channel = await self.gen_channel(self.lbs_channel_token, GRPC_LBS_VOLVO_HOST)
+        
+        async with self._lbs_channel_lock:
+            if not self.lbs_channel:
+                self.lbs_channel = await self.gen_channel(GRPC_LBS_VOLVO_HOST)
 
     def raise_invocation_fail(self, status):
         if status in [invocationStatus.SUCCESS, invocationStatus.SENT, invocationStatus.DELIVERED]:
