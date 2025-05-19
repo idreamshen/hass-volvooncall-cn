@@ -25,7 +25,7 @@ DIGITALVOLVO_HEADERS = {
     "Accept-Language": "zh-CN,zh-Hans;q=0.9",
     "X-Ca-Version": "1.0",
     "x-sdk-content-sha256": "UNSIGNED-PAYLOAD",
-    "version": "5.51.1",
+    "version": "5.53.1",
     "Accept": "application/json; charset=utf-8",
 }
 

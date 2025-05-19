@@ -37,7 +37,7 @@ _LOGGER = logging.getLogger(__name__)
 
 GRPC_DIGITALVOLVO_HOST = "cepmobtoken.prod.c3.volvocars.com.cn:443"
 GRPC_LBS_VOLVO_HOST = "cepmobtoken.lbs.prod.c3.volvocars.com.cn:443"
-USER_AGENT = "vca-android/5.51.1 grpc-java-okhttp/1.68.0"
+USER_AGENT = "vca-android/5.53.1 grpc-java-okhttp/1.68.0"
 MAX_RETRIES = 1
 TIMEOUT = datetime.timedelta(seconds=10)
 DOMAIN = "volvooncall_cn"
