@@ -64,8 +64,14 @@ class VehicleAPI(VehicleBaseAPI):
         callCreds = grpc.metadata_call_credentials(self._metadata_callback)
         sslCreds = grpc.ssl_channel_credentials()
         creds = grpc.composite_channel_credentials(sslCreds, callCreds)
-        channel_options: tuple = (("grpc.primary_user_agent", USER_AGENT), ('grpc.accept_encoding', 'gzip'),)
-        channel = grpc.secure_channel(target, creds, options=channel_options)
+        channel_options: tuple = (
+                ("grpc.primary_user_agent", USER_AGENT), 
+                ('grpc.accept_encoding', 'gzip'),
+                ('grpc.keepalive_time_ms', 60000),
+                ('grpc.keepalive_timeout_ms', 10000),
+                ('grpc.keepalive_permit_without_calls', 1),
+        )
+        channel = grpc.aio.secure_channel(target, creds, options=channel_options)
         return channel
 
     async def get_channel(self):
@@ -107,7 +113,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = GetFuelReq(vin=vin)
         metadata: list = [("vin", vin)]
         res = GetFuelResp()
-        for res in stub.GetFuel(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.GetFuel(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             break
         return res
 
@@ -116,7 +123,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = GetExteriorReq(vin=vin)
         metadata: list = [("vin", vin)]
         res = GetExteriorResp()
-        for res in stub.GetExterior(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.GetExterior(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             break
         return res
 
@@ -125,7 +133,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = GetHealthReq(vin=vin)
         metadata: list = [("vin", vin)]
         res = GetHealthResp()
-        for res in stub.GetHealth(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.GetHealth(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             _LOGGER.debug("get_health resp")
             _LOGGER.debug(res)
             break
@@ -136,7 +145,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = GetOdometerReq(vin=vin)
         metadata: list = [("vin", vin)]
         res = GetOdometerResp()
-        for res in stub.GetOdometer(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.GetOdometer(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             break
         return res
 
@@ -145,7 +155,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = GetAvailabilityReq(vin=vin)
         metadata: list = [("vin", vin)]
         res = GetAvailabilityResp()
-        for res in stub.GetAvailability(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.GetAvailability(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             break
         return res
 
@@ -155,7 +166,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = windowControlReq(head=req_header, openType=opentype)
         metadata: list = [("vin", vin)]
         res: invocationCommResp = invocationCommResp()
-        for res in stub.WindowControl(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.WindowControl(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             _LOGGER.debug(res)
             self.raise_invocation_fail(res.data.status)
             break
@@ -167,7 +179,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = StreamLastKnownLocationsReq(vin=vin)
         metadata: list = [("vin", vin)]
         res: StreamLastKnownLocationsResp = StreamLastKnownLocationsResp()
-        for res in stub.StreamLastKnownLocations(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.StreamLastKnownLocations(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             break
         return res
 
@@ -181,7 +194,8 @@ class VehicleAPI(VehicleBaseAPI):
             req = EngineStartReq(head=req_header, isStart=isStart)
         metadata: list = [("vin", vin)]
         res: invocationCommResp = invocationCommResp()
-        for res in stub.EngineStart(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.EngineStart(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             _LOGGER.debug(res)
             self.raise_invocation_fail(res.data.status)
             break
@@ -193,7 +207,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = HonkFlashReq(head=req_header, honkFlashType=honk_flash_type)
         metadata: list = [("vin", vin)]
         res: invocationCommResp = invocationCommResp()
-        for res in stub.HonkFlash(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.HonkFlash(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             _LOGGER.debug(res)
             self.raise_invocation_fail(res.data.status)
             break
@@ -205,7 +220,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = LockReq(head=req_header, lockType=LockType.LOCK_REDUCED_GUARD)
         metadata: list = [("vin", vin)]
         res: invocationCommResp = invocationCommResp()
-        for res in stub.Lock(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.Lock(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             _LOGGER.debug(res)
             self.raise_invocation_fail(res.data.status)
             break
@@ -219,7 +235,8 @@ class VehicleAPI(VehicleBaseAPI):
             req = UnlockReq(head=req_header, unlockType=unlockType)
         metadata: list = [("vin", vin)]
         res: invocationCommResp = invocationCommResp()
-        for res in stub.Unlock(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.Unlock(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             _LOGGER.debug(res)
             self.raise_invocation_fail(res.data.status)
             break
@@ -230,7 +247,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = GetEngineRemoteStartReq(vin=vin)
         metadata: list = [("vin", vin)]
         res: GetEngineRemoteStartResp = GetEngineRemoteStartResp()
-        for res in stub.GetEngineRemoteStart(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.GetEngineRemoteStart(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             _LOGGER.debug(res)
             break
         return res
@@ -241,7 +259,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = SunroofControlReq(head=req_header, type=controlType)
         metadata: list = [("vin", vin)]
         res: invocationCommResp = invocationCommResp()
-        for res in stub.SunroofControl(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.SunroofControl(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             _LOGGER.debug(res)
             self.raise_invocation_fail(res.data.status)
             break
@@ -253,7 +272,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = TailgateControlReq(head=req_header, type=controlType)
         metadata: list = [("vin", vin)]
         res: invocationCommResp = invocationCommResp()
-        for res in stub.TailgateControl(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.TailgateControl(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             _LOGGER.debug(res)
             self.raise_invocation_fail(res.data.status)
             break
@@ -265,7 +285,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = UpdateStatusReq(head=req_header)
         metadata: list = [("vin", vin)]
         res: invocationCommResp = invocationCommResp()
-        for res in stub.UpdateStatus(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.UpdateStatus(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             _LOGGER.debug("update_status resp")
             _LOGGER.debug(res)
             self.raise_invocation_fail(res.data.status)
@@ -277,7 +298,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = GetPreferencesReq(vin=vin)
         metadata: list = [("vin", vin)]
         res: GetPreferencesResp = GetPreferencesResp()
-        for res in stub.GetPreferences(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.GetPreferences(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             _LOGGER.debug(res)
             break
         return res
@@ -288,7 +310,8 @@ class VehicleAPI(VehicleBaseAPI):
         req = UpdatePreferencesReq(vin=vin, preference=preference)
         metadata: list = [("vin", vin)]
         res: UpdatePreferencesResp = UpdatePreferencesResp()
-        for res in stub.UpdatePreferences(req, metadata=metadata, timeout=TIMEOUT.seconds):
+        async for resp in stub.UpdatePreferences(req, metadata=metadata, timeout=TIMEOUT.seconds):
+            res = resp
             _LOGGER.debug(res)
             break
         return res
@@ -356,7 +379,7 @@ class Vehicle(object):
             exterior_status: ExteriorStatus = exterior_resp.data
             _LOGGER.debug(exterior_status)
         except Exception as err:
-            _LOGGER.error(err)
+            _LOGGER.exception(err)
             return
         self.car_locked = exterior_status.central_lock == LockStatus.LOCK_STATUS_LOCKED
         self.front_left_door_open = isWindowOpen(exterior_status.front_left_door)
@@ -400,7 +423,7 @@ class Vehicle(object):
             self.rear_right_tyre_pressure_warning = health_status.rear_right_tyre_pressure_warning > 1
 
         except Exception as err:
-            _LOGGER.error(err)
+            _LOGGER.exception(err)
             return
 
     async def _parse_fuel(self):
@@ -409,7 +432,7 @@ class Vehicle(object):
             fuel_data = fuel_resp.data
             _LOGGER.debug(fuel_data)
         except Exception as err:
-            _LOGGER.error(err)
+            _LOGGER.exception(err)
             return
         self.fuel_amount = round(fuel_data.fuelAmount, 2)
         self.distance_to_empty = fuel_data.distanceToEmptyKm
@@ -422,7 +445,7 @@ class Vehicle(object):
             odometer_data = odometer_resp.data
             _LOGGER.debug(odometer_data)
         except Exception as err:
-            _LOGGER.error(err)
+            _LOGGER.exception(err)
             return
         self.odo_meter = odometer_data.odometerMeters / 1000
 
@@ -432,7 +455,7 @@ class Vehicle(object):
             availability_data = availability_resp.data
             _LOGGER.debug(availability_data)
         except Exception as err:
-            _LOGGER.error(err)
+            _LOGGER.exception(err)
             return
         self.availability_status = availability_data.availableStatus
         self.unavailable_reason = availability_data.unavailableReason
@@ -442,7 +465,7 @@ class Vehicle(object):
         try:
             location_resp: StreamLastKnownLocationsResp = await self._api.get_location(self.vin)
         except Exception as err:
-            _LOGGER.error(err)
+            _LOGGER.exception(err)
             return
         self.position = {
             "latitude": location_resp.latitude,
@@ -460,7 +483,7 @@ class Vehicle(object):
             engine_resp: GetEngineRemoteStartResp = await self._api.get_engine_status(self.vin)
             engine_data = engine_resp.data
         except Exception as err:
-            _LOGGER.error(err)
+            _LOGGER.exception(err)
             return
         if engine_data.engineRunningStatus in [EngineRunningStatus.Starting, EngineRunningStatus.Running]:
             self.engine_remote_running = True
@@ -475,7 +498,7 @@ class Vehicle(object):
             preference_resp: GetPreferencesResp = await self._api.get_car_preferences(self.vin)
             _LOGGER.debug("preference:%s", preference_resp)
         except Exception as err:
-            _LOGGER.error(err)
+            _LOGGER.exception(err)
             return
         if preference_resp and preference_resp.preference:
             self.nickname = preference_resp.preference.nickName
@@ -498,8 +521,9 @@ class Vehicle(object):
             for runf in funcs:
                 task = tg.create_task(runf())
                 tasks.append(task)
-        for task in tasks:
-            _LOGGER.debug(task.result())
+        results = await asyncio.gather(*tasks)
+        for result in results:
+            _LOGGER.debug(result)
 
     async def lock_window(self):
         await self._api.window_control(self.vin, invocationControlType.CLOSE)
