@@ -1,450 +1,178 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
 from datetime import timedelta
+import asyncio
 import logging
-import async_timeout
 
-from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.device_registry import DeviceInfo
-
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME, Platform
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_SCAN_INTERVAL
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import EntityDescription
+from homeassistant.helpers.update_coordinator import CoordinatorEntity, DataUpdateCoordinator, UpdateFailed
 
+from .const import DOMAIN
 from .store import VolvoStore
-from .volvooncall_base import DEFAULT_SCAN_INTERVAL
-from .volvooncall_cn import VehicleAPI
-from .volvooncall_cn import Vehicle
-from .volvooncall_cn import DOMAIN
+from aiohttp import ClientError
 
-PLATFORMS = {
-    "sensor": "sensor",
-    "binary_sensor": "binary_sensor",
-    "device_tracker": "device_tracker",
-    "lock": "lock",
-    "button": "button",
-    "number": "number",
-    "switch": "switch",
-}
+from .volvooncall_base import DEFAULT_SCAN_INTERVAL, VolvoAPIError
+from .volvooncall_cn import Vehicle, VehicleAPI
 
 _LOGGER = logging.getLogger(__name__)
 
+PLATFORMS: list[Platform] = [
+    Platform.SENSOR,
+    Platform.BINARY_SENSOR,
+    Platform.DEVICE_TRACKER,
+    Platform.LOCK,
+    Platform.BUTTON,
+    Platform.NUMBER,
+    Platform.SWITCH,
+]
 
-async def async_update_options(hass: HomeAssistant, config_entry: ConfigEntry):
-    # entry = {**config_entry.data, **config_entry.options}
-    config_data = {**config_entry.data, **config_entry.options}
-    entry_id = config_entry.entry_id
 
-    username = config_data.get(CONF_USERNAME)
-    password = config_data.get(CONF_PASSWORD)
-    interval = config_data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
-    _LOGGER.info("new interval: %s", interval)
+@dataclass
+class VolvoRuntimeData:
+    coordinator: "VolvoCoordinator"
+    api: VehicleAPI
+
+
+async def _async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    if entry.version == 1:
+        data = dict(entry.data)
+        options = dict(entry.options)
+        if CONF_SCAN_INTERVAL in data and CONF_SCAN_INTERVAL not in options:
+            options[CONF_SCAN_INTERVAL] = data.pop(CONF_SCAN_INTERVAL)
+        hass.config_entries.async_update_entry(entry, data=data, options=options, version=2)
+    return True
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     session = async_get_clientsession(hass)
-    volvo_api = VehicleAPI(session=session, username=username, password=password)
-    hass.data.setdefault(DOMAIN, {})
-    if config_entry.entry_id in hass.data[DOMAIN]:
-        coordinator = hass.data[DOMAIN][entry_id]
-        coordinator.volvo_api = volvo_api
-        coordinator.update_interval = timedelta(seconds=interval)
-
-
-async def async_setup_entry(hass, entry):
-    """Config entry example."""
-    session = async_get_clientsession(hass)
+    if CONF_SCAN_INTERVAL in entry.data and CONF_SCAN_INTERVAL not in entry.options:
+        data = dict(entry.data)
+        options = dict(entry.options)
+        options[CONF_SCAN_INTERVAL] = data.pop(CONF_SCAN_INTERVAL)
+        hass.config_entries.async_update_entry(entry, data=data, options=options)
 
     username = entry.data.get(CONF_USERNAME)
     password = entry.data.get(CONF_PASSWORD)
-    interval = entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+    interval = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     volvo_api = VehicleAPI(session=session, username=username, password=password)
-    hass.data.setdefault(DOMAIN, {})
-    coordinator = hass.data[DOMAIN][entry.entry_id] = VolvoCoordinator(hass, volvo_api, interval)
+    coordinator = VolvoCoordinator(hass, volvo_api, interval)
+    entry.runtime_data = VolvoRuntimeData(coordinator=coordinator, api=volvo_api)
 
-    # Fetch initial data so we have data when entities subscribe
-    #
-    # If the refresh fails, async_config_entry_first_refresh will
-    # raise ConfigEntryNotReady and setup will try again later
-    #
-    # If you do not want to retry setup on failure, use
-    # coordinator.async_refresh() instead
-    #
-    if not entry.update_listeners:
-        entry.add_update_listener(async_update_options)
+    entry.async_on_unload(entry.add_update_listener(_async_update_options))
     await coordinator.async_config_entry_first_refresh()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
 
-class VolvoCoordinator(DataUpdateCoordinator):
-    """My custom coordinator."""
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unload_ok:
+        entry.runtime_data = None
+    return unload_ok
 
-    def __init__(self, hass, volvo_api, scan_interval):
-        """Initialize my coordinator."""
+
+class VolvoCoordinator(DataUpdateCoordinator[list[Vehicle]]):
+    def __init__(self, hass: HomeAssistant, volvo_api: VehicleAPI, scan_interval: int) -> None:
         super().__init__(
             hass,
             _LOGGER,
-            # Name of the data. For logging purposes.
-            name="Volvo On Call CN sensor",
-            # Polling interval. Will only be polled if there are subscribers.
+            name="Volvo On Call CN",
             update_interval=timedelta(seconds=scan_interval),
+            always_update=False,
         )
         self.volvo_api = volvo_api
-        self.store_datas = []
+        self._vehicles: dict[str, Vehicle] = {}
+        self.stores: dict[str, VolvoStore] = {}
 
-    async def _async_update_data(self):
-        """Fetch data from API endpoint.
+    async def _async_setup(self) -> None:
+        await self.volvo_api.login()
 
-        This is the place to pre-process the data to lookup tables
-        so entities can quickly look up their data.
-        """
+    async def _async_update_data(self) -> list[Vehicle]:
         try:
-            # Note: asyncio.TimeoutError and aiohttp.ClientError are already
-            # handled by the data update coordinator.
-            async with async_timeout.timeout(30):
-                # Grab active context variables to limit data required to be fetched from API
-                # Note: using context is not required if there is no need or ability to limit
-                # data retrieved from API.
+            async with asyncio.timeout(30):
                 await self.volvo_api.login()
                 await self.volvo_api.update_token()
-                vinVehicleMaps = await self.volvo_api.get_vehicles_vins()
-                vehicles = []
-                for vin, vehicleInfos in vinVehicleMaps.items():
-                    modelYear = int(vehicleInfos.get("modelYear", 2020))
-                    isAaos = modelYear >= 2022
-                    vehicle = Vehicle(vin, self.volvo_api, isAaos)
-                    await vehicle.update()
-                    vehicles.append(vehicle)
+                vin_vehicle_map = await self.volvo_api.get_vehicles_vins()
+                current_vins = set(vin_vehicle_map)
 
-                    store_data = VolvoStore(self.hass, vin)
-                    await store_data.load_create_data()
-                    self.store_datas.append(store_data)
+                for vin in list(self._vehicles):
+                    if vin not in current_vins:
+                        self._vehicles.pop(vin)
+                        self.stores.pop(vin, None)
 
-                return vehicles
+                for vin, vehicle_info in vin_vehicle_map.items():
+                    if vin not in self._vehicles:
+                        model_year = int(vehicle_info.get("modelYear", 2020))
+                        is_aaos = model_year >= 2022
+                        self._vehicles[vin] = Vehicle(vin, self.volvo_api, is_aaos)
+                    if vin not in self.stores:
+                        store = VolvoStore(self.hass, vin)
+                        await store.load_create_data()
+                        self.stores[vin] = store
+
+                await asyncio.gather(
+                    *(vehicle.update() for vehicle in self._vehicles.values())
+                )
+
+                return list(self._vehicles.values())
+        except VolvoAPIError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
+        except TimeoutError as err:
+            raise UpdateFailed(f"Timeout communicating with API: {err}") from err
+        except ClientError as err:
+            raise UpdateFailed(f"Network error communicating with API: {err}") from err
         except Exception as err:
-            raise UpdateFailed(f"Error communicating with API: {err}")
+            raise UpdateFailed(f"Error communicating with API: {err}") from err
 
 
-metaMap = {
-    "car_lock": {
-        "name": "Lock",
-        "device_class": None,
-        "icon": "",
-        "unit": "",
-        "entity_id": "lock",
-    },
-    "window_lock": {
-        "name": "Winodw Lock",
-        "device_class": None,
-        "icon": "",
-        "unit": "",
-        "entity_id": "window_lock",
-    },
-    # "remote_door_unlock": {
-    #    "name": "Remote Door Unlock",
-    #    "device_class": "lock",
-    #    "icon": "",
-    #    "unit": "",
-    # },
-    "distance_to_empty": {
-        "name": "Distance to empty",
-        "device_class": None,
-        "icon": "mdi:ruler",
-        "unit": "km",
-        "entity_id": "distance_to_empty",
-    },
-    "tail_gate_open": {
-        "name": "Tail gate",
-        "device_class": "door",
-        "icon": "mdi:car-back",
-        "unit": "",
-        "entity_id": "tail_gate",
-    },
-    "rear_right_door_open": {
-        "name": "Rear right door",
-        "device_class": "door",
-        "icon": "",
-        "unit": "",
-        "entity_id": "rear_right_door",
-    },
-    "rear_left_door_open": {
-        "name": "Rear left door",
-        "device_class": "door",
-        "icon": "",
-        "unit": "",
-        "entity_id": "rear_left_door",
-    },
-    "front_right_door_open": {
-        "name": "Front right door",
-        "device_class": "door",
-        "icon": "",
-        "unit": "",
-        "entity_id": "front_right_door",
-    },
-    "front_left_door_open": {
-        "name": "Front left door",
-        "device_class": "door",
-        "icon": "",
-        "unit": "",
-        "entity_id": "front_left_door",
-    },
-    "hood_open": {
-        "name": "Hood",
-        "device_class": "door",
-        "icon": "",
-        "unit": "",
-        "entity_id": "hood",
-    },
-    "sunroof_open": {
-        "name": "Sunroof",
-        "device_class": "window",
-        "icon": "mdi:home-roof",
-        "unit": "",
-        "entity_id": "sunroof",
-    },
-    "engine_running": {
-        "name": "Engine",
-        "device_class": "power",
-        "icon": "",
-        "unit": "",
-        "entity_id": "engine",
-    },
-    "odo_meter": {
-        "name": "Odometer",
-        "device_class": None,
-        "icon": "mdi:speedometer",
-        "unit": "km",
-        "entity_id": "odometer",
-    },
-    "front_left_window_open": {
-        "name": "Front left window",
-        "device_class": "window",
-        "icon": "",
-        "unit": "",
-        "entity_id": "front_left_window",
-    },
-    "front_right_window_open": {
-        "name": "Front right window",
-        "device_class": "window",
-        "icon": "",
-        "unit": "",
-        "entity_id": "front_right_window",
-    },
-    "rear_left_window_open": {
-        "name": "Rear left window",
-        "device_class": "window",
-        "icon": "",
-        "unit": "",
-        "entity_id": "rear_left_window",
-    },
-    "rear_right_window_open": {
-        "name": "Rear right window",
-        "device_class": "window",
-        "icon": "",
-        "unit": "",
-        "entity_id": "rear_right_window",
-    },
-    "fuel_amount": {
-        "name": "Fuel amount",
-        "device_class": "VOLUME_STORAGE",
-        "icon": "mdi:gas-station",
-        "unit": "L",
-        "entity_id": "fuel_amount",
-    },
-    "fuel_average_consumption_liters_per_100_km": {
-        "name": "Fuel average consumption liters per 100 km",
-        "device_class": "gas",
-        "icon": "mdi:gas-station",
-        "unit": "L/100km",
-        "entity_id": "fuel_average_consumption_liters_per_100_km",
-    },
-    # TODO
-    # "fuel_amount_level": {
-    #    "name": "Fuel amount level",
-    #    "device_class": None,
-    #    "icon": "mdi:gas-station",
-    #    "unit": "%",
-    # },
-    "position": {
-        "name": "Position",
-        "device_class": None,
-        "icon": "",
-        "unit": "",
-        "entity_id": "position",
-    },
-    "position_wgs84": {
-        "name": "Position WGS84",
-        "device_class": None,
-        "icon": "",
-        "unit": "",
-        "entity_id": "position_wgs84",
-    },
-    "flash_button": {
-        "name": "Flash",
-        "device_class": None,
-        "icon": "mdi:car-light-high",
-        "unit": "",
-        "entity_id": "flash",
-    },
-    "honk_flash_button": {
-        "name": "Honk And Flash",
-        "device_class": None,
-        "icon": "mdi:alarm-light",
-        "unit": "",
-        "entity_id": "honk_and_flash",
-    },
-    "engine_duration_number": {
-        "name": "Engine Duration",
-        "device_class": None,
-        "icon": "mdi:clock-time-eight-outline",
-        "unit": "Minute",
-        "entity_id": "engine_duration",
-    },
-    "engine_switch": {
-        "name": "Engine Remote control",
-        "device_class": None,
-        "icon": "mdi:engine-outline",
-        "unit": "",
-        "entity_id": "engine_remote_control",
-    },
-    "honk_button": {
-        "name": "Honk",
-        "device_class": None,
-        "icon": "mdi:bugle",
-        "unit": "",
-        "entity_id": "honk",
-    },
-    "tail_gate_switch": {
-        "name": "Tailgate control",
-        "device_class": None,
-        "icon": "mdi:car-back",
-        "unit": "",
-        "entity_id": "tailgate_control",
-    },
-    "sunroof_switch": {
-        "name": "Sunroof control",
-        "device_class": None,
-        "icon": "mdi:home-roof",
-        "unit": "",
-        "entity_id": "sunroof_control",
-    },
-    "service_warning_msg": {
-        "name": "Service Warning Message",
-        "device_class": None,
-        "icon": "mdi:car-wrench",
-        "unit": None,
-        "entity_id": "service_warning_msg",
-    },
-    "service_warning": {
-        "name": "Service Warning",
-        "device_class": "problem",
-        "icon": "mdi:car-wrench",
-        "unit": None,
-        "entity_id": "service_warning",
-    },
-    "brake_fluid_level_warning": {
-        "name": "Brake Fluid Level Warning",
-        "device_class": "problem",
-        "icon": "mdi:car-brake-fluid-level",
-        "unit": None,
-        "entity_id": "brake_fluid_level_warning",
-    },
-    "engine_coolant_level_warning": {
-        "name": "Engine Coolant Level Warning",
-        "device_class": "problem",
-        "icon": "mdi:car-coolant-level",
-        "unit": None,
-        "entity_id": "engine_coolant_level_warning",
-    },
-    "oil_level_warning": {
-        "name": "Oil Level Warning",
-        "device_class": "problem",
-        "icon": "mdi:oil-level",
-        "unit": None,
-        "entity_id": "oil_level_warning",
-    },
-    "washer_fluid_level_warning": {
-        "name": "Washer Fluid Level Warning",
-        "device_class": "problem",
-        "icon": "mdi:wiper-wash",
-        "unit": None,
-        "entity_id": "washer_fluid_level_warning",
-    },
-    "front_left_tyre_pressure_warning": {
-        "name": "Front Left Tyre Pressure Warning",
-        "device_class": "problem",
-        "icon": "mdi:car-tire-alert",
-        "unit": None,
-        "entity_id": "front_left_tyre_pressure_warning",
-    },
-    "front_right_tyre_pressure_warning": {
-        "name": "Front Right Tyre Pressure Warning",
-        "device_class": "problem",
-        "icon": "mdi:car-tire-alert",
-        "unit": None,
-        "entity_id": "front_right_tyre_pressure_warning",
-    },
-    "rear_left_tyre_pressure_warning": {
-        "name": "Rear Left Tyre Pressure Warning",
-        "device_class": "problem",
-        "icon": "mdi:car-tire-alert",
-        "unit": None,
-        "entity_id": "rear_left_tyre_pressure_warning",
-    },
-    "rear_right_tyre_pressure_warning": {
-        "name": "Rear Right Tyre Pressure Warning",
-        "device_class": "problem",
-        "icon": "mdi:car-tire-alert",
-        "unit": None,
-        "entity_id": "rear_right_tyre_pressure_warning",
-    }
-}
+class VolvoEntity(CoordinatorEntity[VolvoCoordinator]):
+    _attr_has_entity_name = True
 
-
-class VolvoEntity(CoordinatorEntity):
-    def __init__(self, coordinator, idx, metaMapKey, platform):
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, context=idx)
-        self.idx = idx
-        self.metaMapKey = metaMapKey
-        self.entity_id = f"{platform}.{self.coordinator.data[self.idx].vin}_{metaMap[self.metaMapKey]['entity_id']}"
+    def __init__(
+        self,
+        coordinator: VolvoCoordinator,
+        vehicle: Vehicle,
+        description: EntityDescription,
+    ) -> None:
+        super().__init__(coordinator)
+        self.entity_description = description
+        self._vehicle = vehicle
+        self._attr_unique_id = f"{vehicle.vin}-{description.key}"
+        self._attr_translation_key = description.translation_key or description.key
 
     @property
-    def icon(self):
-        return metaMap[self.metaMapKey]["icon"]
-
-    @property
-    def device_class(self):
-        return metaMap[self.metaMapKey]["device_class"]
+    def vehicle(self) -> Vehicle:
+        # Fetch the latest vehicle reference from coordinator to avoid stale data
+        for v in self.coordinator.data:
+            if v.vin == self._vehicle.vin:
+                return v
+        # Fallback to stored reference if not found (shouldn't happen normally)
+        return self._vehicle
 
     @property
     def device_info(self) -> DeviceInfo:
-        """Return a inique set of attributes for each vehicle."""
+        series_name = self._vehicle.series_name or self._vehicle.model_name or self._vehicle.vin
+        model_name = f"{self._vehicle.series_name} {self._vehicle.model_name}".strip()
         return DeviceInfo(
-            identifiers={(DOMAIN, self.coordinator.data[self.idx].vin)},
-            name="Volvo " + self.coordinator.data[self.idx].series_name,
-            model=self.coordinator.data[self.idx].series_name + " " + self.coordinator.data[self.idx].model_name,
+            identifiers={(DOMAIN, self._vehicle.vin)},
+            name=f"Volvo {series_name}",
+            model=model_name,
             manufacturer="Volvo",
         )
 
     @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
-        return f"{self.coordinator.data[self.idx].vin}-{self.metaMapKey}"
-
-    @property
-    def translation_key(self) -> str:
-        return self.metaMapKey
-
-    @property
-    def has_entity_name(self) -> bool:
-        return True
-
-    @property
-    def translation_placeholders(self):
-        return {"nickname": (self.coordinator.data[self.idx].nickname)}
+    def translation_placeholders(self) -> dict[str, str]:
+        nickname = self._vehicle.nickname or self._vehicle.series_name or self._vehicle.model_name
+        return {"nickname": nickname or self._vehicle.vin}

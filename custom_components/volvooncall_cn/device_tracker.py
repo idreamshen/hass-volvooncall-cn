@@ -1,13 +1,34 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+from typing import Callable
+
+from homeassistant.components.device_tracker import SourceType
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.const import Platform
 
 from . import VolvoCoordinator, VolvoEntity
-from .volvooncall_cn import DOMAIN
+from .volvooncall_cn import Vehicle
+
+
+@dataclass(frozen=True, kw_only=True)
+class VolvoTrackerEntityDescription(EntityDescription):
+    location_fn: Callable[[Vehicle], dict[str, float]]
+
+
+TRACKER_DESCRIPTIONS: tuple[VolvoTrackerEntityDescription, ...] = (
+    VolvoTrackerEntityDescription(
+        key="position",
+        location_fn=lambda vehicle: vehicle.position,
+    ),
+    VolvoTrackerEntityDescription(
+        key="position_wgs84",
+        location_fn=lambda vehicle: vehicle.position_wgs84,
+    ),
+)
 
 
 async def async_setup_entry(
@@ -15,33 +36,37 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Configure sensors from a config entry created in the integrations UI."""
-    coordinator: VolvoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: VolvoCoordinator = config_entry.runtime_data.coordinator
+    entities: list[VolvoTracker] = []
 
-    entities = []
-    for idx, _ in enumerate(coordinator.data):
-        entities.append(VolvoSensor(coordinator, idx, "position"))
-        entities.append(VolvoSensor(coordinator, idx, "position_wgs84"))
+    for vehicle in coordinator.data:
+        for description in TRACKER_DESCRIPTIONS:
+            entities.append(VolvoTracker(coordinator, vehicle, description))
 
     async_add_entities(entities)
 
 
-class VolvoSensor(VolvoEntity, TrackerEntity):
-    def __init__(self, coordinator, idx, metaMapKey):
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, idx, metaMapKey, Platform.DEVICE_TRACKER)
+class VolvoTracker(VolvoEntity, TrackerEntity):
+    entity_description: VolvoTrackerEntityDescription
+
+    def __init__(
+        self,
+        coordinator: VolvoCoordinator,
+        vehicle: Vehicle,
+        description: VolvoTrackerEntityDescription,
+    ) -> None:
+        super().__init__(coordinator, vehicle, description)
 
     @property
-    def source_type(self):
-        """Handle updated data from the coordinator."""
-        return "gps"
+    def source_type(self) -> SourceType:
+        return SourceType.GPS
 
     @property
-    def latitude(self):
-        """Handle updated data from the coordinator."""
-        return self.coordinator.data[self.idx].get(self.metaMapKey)["latitude"]
+    def latitude(self) -> float | None:
+        location = self.entity_description.location_fn(self.vehicle)
+        return location.get("latitude") if location else None
 
     @property
-    def longitude(self):
-        """Handle updated data from the coordinator."""
-        return self.coordinator.data[self.idx].get(self.metaMapKey)["longitude"]
+    def longitude(self) -> float | None:
+        location = self.entity_description.location_fn(self.vehicle)
+        return location.get("longitude") if location else None

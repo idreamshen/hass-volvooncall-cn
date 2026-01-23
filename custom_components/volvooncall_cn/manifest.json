@@ -6,7 +6,9 @@
       "@chliny"
     ],
     "config_flow": true,
-    "dependencies": [],
+    "dependencies": [
+        "system_health"
+    ],
     "issue_tracker": "https://github.com/idreamshen/hass-volvooncall-cn/issues",
     "documentation": "https://github.com/idreamshen/hass-volvooncall-cn",
     "iot_class": "cloud_polling",
@@ -14,8 +16,12 @@
         "grpcio>=1.67.1",
         "grpcio-tools>=1.67.1"
     ],
-    "version": "2.4.4",
+    "version": "2.5.0",
     "loggers": [
         "volvooncall_cn"
+    ],
+    "integration_type": "hub",
+    "after_dependencies": [
+        "diagnostics"
     ]
 }

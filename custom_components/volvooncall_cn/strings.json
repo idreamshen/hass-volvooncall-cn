@@ -11,6 +11,15 @@
             }
         }
     },
+    "options": {
+        "step": {
+            "user": {
+                "data": {
+                    "scan_interval": "Scan Interval(s)"
+                }
+            }
+        }
+    },
     "entity": {
         "binary_sensor": {
             "tail_gate_open": {

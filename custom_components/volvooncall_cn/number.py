@@ -1,14 +1,35 @@
-import logging
-from propcache import cached_property
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.components.number import NumberEntity
-from homeassistant.const import Platform
-from . import VolvoCoordinator, VolvoEntity
-from .volvooncall_cn import DOMAIN
+from __future__ import annotations
 
-_LOGGER = logging.getLogger(__name__)
+from dataclasses import dataclass
+from typing import Awaitable, Callable
+
+from homeassistant.components.number import NumberEntity, NumberEntityDescription
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import UnitOfTime
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+from . import VolvoCoordinator, VolvoEntity
+from .volvooncall_cn import Vehicle
+
+
+@dataclass(frozen=True, kw_only=True)
+class VolvoNumberEntityDescription(NumberEntityDescription):
+    value_fn: Callable[[VolvoCoordinator, Vehicle], float]
+    set_value_fn: Callable[[VolvoCoordinator, Vehicle, float], Awaitable[None]]
+
+
+NUMBER_DESCRIPTIONS: tuple[VolvoNumberEntityDescription, ...] = (
+    VolvoNumberEntityDescription(
+        key="engine_duration_number",
+        native_min_value=1,
+        native_max_value=15,
+        native_step=1,
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        value_fn=lambda coordinator, vehicle: coordinator.stores[vehicle.vin].get_engine_duration_number(),
+        set_value_fn=lambda coordinator, vehicle, value: coordinator.stores[vehicle.vin].set_engine_duration_number(value),
+    ),
+)
 
 
 async def async_setup_entry(
@@ -16,45 +37,31 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up button."""
-    coordinator: VolvoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: VolvoCoordinator = config_entry.runtime_data.coordinator
+    entities: list[VolvoNumber] = []
 
-    numbers = []
-    for idx, _ in enumerate(coordinator.data):
-        numbers.append(VolovEngineDurationNumInput(coordinator, idx, "engine_duration_number"))
+    for vehicle in coordinator.data:
+        for description in NUMBER_DESCRIPTIONS:
+            entities.append(VolvoNumber(coordinator, vehicle, description))
 
-    async_add_entities(numbers)
+    async_add_entities(entities)
 
 
-class VolovEngineDurationNumInput(VolvoEntity, NumberEntity):
-    def __init__(self, coordinator, idx, metaMapKey):
-        super().__init__(coordinator, idx, metaMapKey, Platform.NUMBER)
-        self.max_duration = 15
-        self.min_duration = 1
+class VolvoNumber(VolvoEntity, NumberEntity):
+    entity_description: VolvoNumberEntityDescription
 
-    @cached_property
-    def native_max_value(self) -> float:
-        return self.max_duration
-
-    @cached_property
-    def native_min_value(self) -> float:
-        return self.min_duration
-
-    @cached_property
-    def native_step(self) -> float:
-        return 1
-
-    @cached_property
-    def native_value(self):
-       store_data = self.coordinator.store_datas[self.idx]
-       return store_data.get_engine_duration_number()
+    def __init__(
+        self,
+        coordinator: VolvoCoordinator,
+        vehicle: Vehicle,
+        description: VolvoNumberEntityDescription,
+    ) -> None:
+        super().__init__(coordinator, vehicle, description)
 
     @property
-    def state(self):
-        store_data = self.coordinator.store_datas[self.idx]
-        return store_data.get_engine_duration_number()
+    def native_value(self) -> float | None:
+        return self.entity_description.value_fn(self.coordinator, self.vehicle)
 
-    async def async_set_native_value(self, value):
-        store_data = self.coordinator.store_datas[self.idx]
-        await store_data.set_engine_duration_number(value)
-        await self.coordinator.async_refresh()
+    async def async_set_native_value(self, value: float) -> None:
+        await self.entity_description.set_value_fn(self.coordinator, self.vehicle, value)
+        await self.coordinator.async_request_refresh()

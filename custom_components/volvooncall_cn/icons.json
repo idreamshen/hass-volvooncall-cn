@@ -1,0 +1,83 @@
+{
+    "entity": {
+        "sensor": {
+            "distance_to_empty": {
+                "default": "mdi:ruler"
+            },
+            "odo_meter": {
+                "default": "mdi:speedometer"
+            },
+            "fuel_amount": {
+                "default": "mdi:gas-station"
+            },
+            "fuel_average_consumption_liters_per_100_km": {
+                "default": "mdi:gas-station"
+            },
+            "service_warning_msg": {
+                "default": "mdi:car-wrench"
+            }
+        },
+        "binary_sensor": {
+            "tail_gate_open": {
+                "default": "mdi:car-back"
+            },
+            "sunroof_open": {
+                "default": "mdi:home-roof"
+            },
+            "service_warning": {
+                "default": "mdi:car-wrench"
+            },
+            "brake_fluid_level_warning": {
+                "default": "mdi:car-brake-fluid-level"
+            },
+            "engine_coolant_level_warning": {
+                "default": "mdi:car-coolant-level"
+            },
+            "oil_level_warning": {
+                "default": "mdi:oil-level"
+            },
+            "washer_fluid_level_warning": {
+                "default": "mdi:wiper-wash"
+            },
+            "front_left_tyre_pressure_warning": {
+                "default": "mdi:car-tire-alert"
+            },
+            "front_right_tyre_pressure_warning": {
+                "default": "mdi:car-tire-alert"
+            },
+            "rear_left_tyre_pressure_warning": {
+                "default": "mdi:car-tire-alert"
+            },
+            "rear_right_tyre_pressure_warning": {
+                "default": "mdi:car-tire-alert"
+            }
+        },
+        "switch": {
+            "engine_switch": {
+                "default": "mdi:engine-outline"
+            },
+            "tail_gate_switch": {
+                "default": "mdi:car-back"
+            },
+            "sunroof_switch": {
+                "default": "mdi:home-roof"
+            }
+        },
+        "button": {
+            "flash_button": {
+                "default": "mdi:car-light-high"
+            },
+            "honk_flash_button": {
+                "default": "mdi:alarm-light"
+            },
+            "honk_button": {
+                "default": "mdi:bugle"
+            }
+        },
+        "number": {
+            "engine_duration_number": {
+                "default": "mdi:clock-time-eight-outline"
+            }
+        }
+    }
+}

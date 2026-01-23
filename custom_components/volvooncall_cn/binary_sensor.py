@@ -1,12 +1,164 @@
 from __future__ import annotations
-from homeassistant.components.binary_sensor import BinarySensorEntity
+
+from dataclasses import dataclass
+from typing import Callable, Mapping
+
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+    BinarySensorEntityDescription,
+)
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.const import Platform
 
 from . import VolvoCoordinator, VolvoEntity
-from .volvooncall_cn import DOMAIN
+from .volvooncall_cn import Vehicle
+
+
+@dataclass(frozen=True, kw_only=True)
+class VolvoBinarySensorEntityDescription(BinarySensorEntityDescription):
+    value_fn: Callable[[Vehicle], bool | None]
+    extra_attributes_fn: Callable[[Vehicle], Mapping[str, bool] | None] | None = None
+
+
+DIAGNOSTIC_PROBLEM = VolvoBinarySensorEntityDescription(
+    key="service_warning",
+    device_class=BinarySensorDeviceClass.PROBLEM,
+    entity_category=EntityCategory.DIAGNOSTIC,
+    entity_registry_enabled_default=False,
+    value_fn=lambda vehicle: vehicle.service_warning,
+)
+
+WARNING_DESCRIPTIONS: tuple[VolvoBinarySensorEntityDescription, ...] = (
+    VolvoBinarySensorEntityDescription(
+        key="brake_fluid_level_warning",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda vehicle: vehicle.brake_fluid_level_warning,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="engine_coolant_level_warning",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda vehicle: vehicle.engine_coolant_level_warning,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="oil_level_warning",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda vehicle: vehicle.oil_level_warning,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="washer_fluid_level_warning",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda vehicle: vehicle.washer_fluid_level_warning,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="front_left_tyre_pressure_warning",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda vehicle: vehicle.front_left_tyre_pressure_warning,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="front_right_tyre_pressure_warning",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda vehicle: vehicle.front_right_tyre_pressure_warning,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="rear_left_tyre_pressure_warning",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda vehicle: vehicle.rear_left_tyre_pressure_warning,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="rear_right_tyre_pressure_warning",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda vehicle: vehicle.rear_right_tyre_pressure_warning,
+    ),
+)
+
+
+BINARY_SENSOR_DESCRIPTIONS: tuple[VolvoBinarySensorEntityDescription, ...] = (
+    VolvoBinarySensorEntityDescription(
+        key="tail_gate_open",
+        device_class=BinarySensorDeviceClass.DOOR,
+        value_fn=lambda vehicle: vehicle.tail_gate_open,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="rear_right_door_open",
+        device_class=BinarySensorDeviceClass.DOOR,
+        value_fn=lambda vehicle: vehicle.rear_right_door_open,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="rear_left_door_open",
+        device_class=BinarySensorDeviceClass.DOOR,
+        value_fn=lambda vehicle: vehicle.rear_left_door_open,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="front_right_door_open",
+        device_class=BinarySensorDeviceClass.DOOR,
+        value_fn=lambda vehicle: vehicle.front_right_door_open,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="front_left_door_open",
+        device_class=BinarySensorDeviceClass.DOOR,
+        value_fn=lambda vehicle: vehicle.front_left_door_open,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="hood_open",
+        device_class=BinarySensorDeviceClass.DOOR,
+        value_fn=lambda vehicle: vehicle.hood_open,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="sunroof_open",
+        device_class=BinarySensorDeviceClass.WINDOW,
+        value_fn=lambda vehicle: vehicle.sunroof_open,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="engine_running",
+        device_class=BinarySensorDeviceClass.RUNNING,
+        value_fn=lambda vehicle: vehicle.engine_running,
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="front_left_window_open",
+        device_class=BinarySensorDeviceClass.WINDOW,
+        value_fn=lambda vehicle: vehicle.front_left_window_open,
+        extra_attributes_fn=lambda vehicle: {"open_status_ajar": vehicle.front_left_window_open_ajar},
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="front_right_window_open",
+        device_class=BinarySensorDeviceClass.WINDOW,
+        value_fn=lambda vehicle: vehicle.front_right_window_open,
+        extra_attributes_fn=lambda vehicle: {"open_status_ajar": vehicle.front_right_window_open_ajar},
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="rear_left_window_open",
+        device_class=BinarySensorDeviceClass.WINDOW,
+        value_fn=lambda vehicle: vehicle.rear_left_window_open,
+        extra_attributes_fn=lambda vehicle: {"open_status_ajar": vehicle.rear_left_window_open_ajar},
+    ),
+    VolvoBinarySensorEntityDescription(
+        key="rear_right_window_open",
+        device_class=BinarySensorDeviceClass.WINDOW,
+        value_fn=lambda vehicle: vehicle.rear_right_window_open,
+        extra_attributes_fn=lambda vehicle: {"open_status_ajar": vehicle.rear_right_window_open_ajar},
+    ),
+    DIAGNOSTIC_PROBLEM,
+    *WARNING_DESCRIPTIONS,
+)
 
 
 async def async_setup_entry(
@@ -14,63 +166,33 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Configure sensors from a config entry created in the integrations UI."""
-    coordinator: VolvoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: VolvoCoordinator = config_entry.runtime_data.coordinator
+    entities: list[VolvoBinarySensor] = []
 
-    entities = []
-    for idx, ent in enumerate(coordinator.data):
-        # entities.append(VolvoSensor(coordinator, idx, "car_lock_open"))
-        # entities.append(VolvoSensor(coordinator, idx, "remote_door_unlock"))
-        entities.append(VolvoSensor(coordinator, idx, "tail_gate_open"))
-        entities.append(VolvoSensor(coordinator, idx, "rear_right_door_open"))
-        entities.append(VolvoSensor(coordinator, idx, "rear_left_door_open"))
-        entities.append(VolvoSensor(coordinator, idx, "front_right_door_open"))
-        entities.append(VolvoSensor(coordinator, idx, "front_left_door_open"))
-        entities.append(VolvoSensor(coordinator, idx, "hood_open"))
-        entities.append(VolvoSensor(coordinator, idx, "engine_running"))
-        entities.append(VolvoWindowSensor(coordinator, idx, "front_left_window_open"))
-        entities.append(VolvoWindowSensor(coordinator, idx, "front_right_window_open"))
-        entities.append(VolvoWindowSensor(coordinator, idx, "rear_left_window_open"))
-        entities.append(VolvoWindowSensor(coordinator, idx, "rear_right_window_open"))
-        entities.append(VolvoSensor(coordinator, idx, "sunroof_open"))
-        entities.append(VolvoSensor(coordinator, idx, "service_warning"))
-        entities.append(VolvoSensor(coordinator, idx, "brake_fluid_level_warning"))
-        entities.append(VolvoSensor(coordinator, idx, "engine_coolant_level_warning"))
-        entities.append(VolvoSensor(coordinator, idx, "oil_level_warning"))
-        entities.append(VolvoSensor(coordinator, idx, "washer_fluid_level_warning"))
-        entities.append(VolvoSensor(coordinator, idx, "front_left_tyre_pressure_warning"))
-        entities.append(VolvoSensor(coordinator, idx, "front_right_tyre_pressure_warning"))
-        entities.append(VolvoSensor(coordinator, idx, "rear_left_tyre_pressure_warning"))
-        entities.append(VolvoSensor(coordinator, idx, "rear_right_tyre_pressure_warning"))
+    for vehicle in coordinator.data:
+        for description in BINARY_SENSOR_DESCRIPTIONS:
+            entities.append(VolvoBinarySensor(coordinator, vehicle, description))
 
     async_add_entities(entities)
 
 
-class VolvoSensor(VolvoEntity, BinarySensorEntity):
-    """An entity using CoordinatorEntity.
+class VolvoBinarySensor(VolvoEntity, BinarySensorEntity):
+    entity_description: VolvoBinarySensorEntityDescription
 
-    The CoordinatorEntity class provides:
-      should_poll
-      async_update
-      async_added_to_hass
-      available
-    """
-
-    def __init__(self, coordinator, idx, metaMapKey):
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, idx, metaMapKey, Platform.BINARY_SENSOR)
+    def __init__(
+        self,
+        coordinator: VolvoCoordinator,
+        vehicle: Vehicle,
+        description: VolvoBinarySensorEntityDescription,
+    ) -> None:
+        super().__init__(coordinator, vehicle, description)
 
     @property
     def is_on(self) -> bool | None:
-        """Handle updated data from the coordinator."""
-        return self.coordinator.data[self.idx].get(self.metaMapKey)
-
-
-class VolvoWindowSensor(VolvoSensor):
-    def __init__(self, coordinator, idx, metaMapKey):
-        super().__init__(coordinator, idx, metaMapKey)
+        return self.entity_description.value_fn(self.vehicle)
 
     @property
-    def extra_state_attributes(self):
-        metaKey = self.metaMapKey + "_ajar"
-        return {"open_status_ajar": self.coordinator.data[self.idx].get(metaKey)}
+    def extra_state_attributes(self) -> Mapping[str, bool] | None:
+        if self.entity_description.extra_attributes_fn is None:
+            return None
+        return self.entity_description.extra_attributes_fn(self.vehicle)

@@ -1,17 +1,66 @@
 from __future__ import annotations
 
-import logging
+from dataclasses import dataclass
+from typing import Callable
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.const import EntityCategory, UnitOfLength, UnitOfVolume
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.const import Platform
+from homeassistant.helpers.typing import StateType
 
-from . import VolvoCoordinator, VolvoEntity, metaMap
-from .volvooncall_cn import DOMAIN
+from . import VolvoCoordinator, VolvoEntity
+from .volvooncall_cn import Vehicle
 
-_LOGGER = logging.getLogger(__name__)
+
+@dataclass(frozen=True, kw_only=True)
+class VolvoSensorEntityDescription(SensorEntityDescription):
+    value_fn: Callable[[Vehicle], StateType | None]
+
+
+SENSOR_DESCRIPTIONS: tuple[VolvoSensorEntityDescription, ...] = (
+    VolvoSensorEntityDescription(
+        key="distance_to_empty",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement=UnitOfLength.KILOMETERS,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda vehicle: vehicle.distance_to_empty,
+    ),
+    VolvoSensorEntityDescription(
+        key="odo_meter",
+        device_class=SensorDeviceClass.DISTANCE,
+        native_unit_of_measurement=UnitOfLength.KILOMETERS,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        value_fn=lambda vehicle: vehicle.odo_meter,
+    ),
+    VolvoSensorEntityDescription(
+        key="fuel_amount",
+        device_class=SensorDeviceClass.VOLUME,
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda vehicle: vehicle.fuel_amount,
+    ),
+    VolvoSensorEntityDescription(
+        key="fuel_average_consumption_liters_per_100_km",
+        native_unit_of_measurement="L/100km",
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda vehicle: vehicle.fuel_average_consumption_liters_per_100_km,
+    ),
+    VolvoSensorEntityDescription(
+        key="service_warning_msg",
+        device_class=SensorDeviceClass.ENUM,
+        options=[str(value) for value in range(12)],
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        value_fn=lambda vehicle: str(vehicle.service_warning_msg),
+    ),
+)
 
 
 async def async_setup_entry(
@@ -19,38 +68,27 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Configure sensors from a config entry created in the integrations UI."""
-    coordinator: VolvoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: VolvoCoordinator = config_entry.runtime_data.coordinator
+    entities: list[VolvoSensor] = []
 
-    entities = []
-    for idx, _ in enumerate(coordinator.data):
-        entities.append(VolvoSensor(coordinator, idx, "distance_to_empty"))
-        entities.append(VolvoSensor(coordinator, idx, "odo_meter"))
-        entities.append(VolvoSensor(coordinator, idx, "fuel_amount"))
-        entities.append(VolvoSensor(coordinator, idx, "fuel_average_consumption_liters_per_100_km"))
-        entities.append(VolvoSensor(coordinator, idx, "service_warning_msg"))
-        # entities.append(VolvoSensor(coordinator, idx, "fuel_amount_level"))
+    for vehicle in coordinator.data:
+        for description in SENSOR_DESCRIPTIONS:
+            entities.append(VolvoSensor(coordinator, vehicle, description))
 
     async_add_entities(entities)
 
 
 class VolvoSensor(VolvoEntity, SensorEntity):
-    """An entity using CoordinatorEntity.
+    entity_description: VolvoSensorEntityDescription
 
-    The CoordinatorEntity class provides:
-      should_poll
-      async_update
-      async_added_to_hass
-      available
-    """
+    def __init__(
+        self,
+        coordinator: VolvoCoordinator,
+        vehicle: Vehicle,
+        description: VolvoSensorEntityDescription,
+    ) -> None:
+        super().__init__(coordinator, vehicle, description)
 
-    def __init__(self, coordinator, idx, metaMapKey):
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, idx, metaMapKey, Platform.SENSOR)
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self._attr_native_value = self.coordinator.data[self.idx].get(self.metaMapKey)
-        self._attr_native_unit_of_measurement = metaMap[self.metaMapKey]["unit"]
-        self.async_write_ha_state()
+    @property
+    def native_value(self) -> StateType | None:
+        return self.entity_description.value_fn(self.vehicle)

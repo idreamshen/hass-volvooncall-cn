@@ -1,16 +1,61 @@
-import logging
+from __future__ import annotations
+
 import asyncio
-from homeassistant.core import HomeAssistant
+from dataclasses import dataclass
+from typing import Awaitable, Callable, Mapping
+
+from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.components.switch import SwitchEntity
-from homeassistant.const import Platform
 
 from . import VolvoCoordinator, VolvoEntity
-from .volvooncall_cn import DOMAIN
 from .volvooncall_base import MAX_RETRIES
+from .volvooncall_cn import Vehicle
 
-_LOGGER = logging.getLogger(__name__)
+
+@dataclass(frozen=True, kw_only=True)
+class VolvoSwitchEntityDescription(SwitchEntityDescription):
+    is_on_fn: Callable[[Vehicle], bool]
+    turn_on_fn: Callable[[VolvoCoordinator, Vehicle], Awaitable[None]]
+    turn_off_fn: Callable[[VolvoCoordinator, Vehicle], Awaitable[None]]
+    extra_attributes_fn: Callable[[Vehicle], Mapping[str, int] | None] | None = None
+    available_fn: Callable[[Vehicle], bool] | None = None
+
+
+SWITCH_DESCRIPTIONS: tuple[VolvoSwitchEntityDescription, ...] = (
+    VolvoSwitchEntityDescription(
+        key="engine_switch",
+        is_on_fn=lambda vehicle: vehicle.engine_running or vehicle.engine_remote_running,
+        turn_on_fn=lambda coordinator, vehicle: vehicle.engine_start(
+            coordinator.stores[vehicle.vin].get_engine_duration_number()
+        ),
+        turn_off_fn=lambda coordinator, vehicle: vehicle.engine_stop(),
+        extra_attributes_fn=lambda vehicle: {
+            "remote_start_at": vehicle.engine_remote_start_time,
+            "remote_end_at": vehicle.engine_remote_end_time,
+        },
+    ),
+    VolvoSwitchEntityDescription(
+        key="tail_gate_switch",
+        is_on_fn=lambda vehicle: vehicle.tail_gate_open,
+        turn_on_fn=lambda coordinator, vehicle: _tailgate_open(vehicle),
+        turn_off_fn=lambda coordinator, vehicle: vehicle.tail_gate_control_close(),
+        available_fn=lambda vehicle: vehicle.isAaos,
+    ),
+    VolvoSwitchEntityDescription(
+        key="sunroof_switch",
+        is_on_fn=lambda vehicle: vehicle.sunroof_open,
+        turn_on_fn=lambda coordinator, vehicle: vehicle.sunroof_control_open(),
+        turn_off_fn=lambda coordinator, vehicle: vehicle.sunroof_control_close(),
+        available_fn=lambda vehicle: vehicle.isAaos,
+    ),
+)
+
+
+async def _tailgate_open(vehicle: Vehicle) -> None:
+    await vehicle.unlock_vehicle_trunk_only()
+    await vehicle.tail_gate_control_open()
 
 
 async def async_setup_entry(
@@ -18,90 +63,50 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up button."""
-    coordinator: VolvoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: VolvoCoordinator = config_entry.runtime_data.coordinator
+    entities: list[VolvoSwitch] = []
 
-    switchs = []
-    for idx, ent in enumerate(coordinator.data):
-        switchs.append(VolvoEngineSwitch(coordinator, idx, "engine_switch"))
-        if ent.get("isAaos"):
-            switchs.append(VolvoTailgateSwitch(coordinator, idx, "tail_gate_switch"))
-            switchs.append(VolvoSunroofSwitch(coordinator, idx, "sunroof_switch"))
+    for vehicle in coordinator.data:
+        for description in SWITCH_DESCRIPTIONS:
+            if description.available_fn and not description.available_fn(vehicle):
+                continue
+            entities.append(VolvoSwitch(coordinator, vehicle, description))
 
-    async_add_entities(switchs)
+    async_add_entities(entities)
 
 
-class VolvoSwitchEntity(VolvoEntity, SwitchEntity):
-    def __init__(self, coordinator, idx, metaKey, checkMetaKeys):
-        super().__init__(coordinator, idx, metaKey, Platform.SWITCH)
-        self.checkMetaKeys = checkMetaKeys
+class VolvoSwitch(VolvoEntity, SwitchEntity):
+    entity_description: VolvoSwitchEntityDescription
 
-    async def _update_status(self, is_on):
+    def __init__(
+        self,
+        coordinator: VolvoCoordinator,
+        vehicle: Vehicle,
+        description: VolvoSwitchEntityDescription,
+    ) -> None:
+        super().__init__(coordinator, vehicle, description)
+
+    @property
+    def is_on(self) -> bool:
+        return self.entity_description.is_on_fn(self.vehicle)
+
+    @property
+    def extra_state_attributes(self) -> Mapping[str, int] | None:
+        if self.entity_description.extra_attributes_fn is None:
+            return None
+        return self.entity_description.extra_attributes_fn(self.vehicle)
+
+    async def _update_status(self, is_on: bool) -> None:
         for _ in range(MAX_RETRIES):
             await asyncio.sleep(2)
-            await self.coordinator.async_refresh()
+            await self.coordinator.async_request_refresh()
             if self.is_on == is_on:
                 break
 
-    @property
-    def is_on(self):
-        coordinator = self.coordinator.data[self.idx]
-        for key in self.checkMetaKeys:
-            if coordinator.get(key):
-                return True
-        return False
-
-
-class VolvoEngineSwitch(VolvoSwitchEntity):
-    def __init__(self, coordinator, idx, metaKey):
-        check_meta_keys = ["engine_running", "engine_remote_running"]
-        super().__init__(coordinator, idx, metaKey, check_meta_keys)
-
     async def async_turn_on(self) -> None:
-        duration = self.coordinator.store_datas[self.idx].get_engine_duration_number()
-        await self.coordinator.data[self.idx].engine_start(duration)
+        await self.entity_description.turn_on_fn(self.coordinator, self.vehicle)
         await self._update_status(True)
 
     async def async_turn_off(self) -> None:
-        await self.coordinator.data[self.idx].engine_stop()
-        await self._update_status(False)
-
-    @property
-    def extra_state_attributes(self):
-        start_time = "engine_remote_start_time"
-        end_time = "engine_remote_end_time"
-        data = self.coordinator.data[self.idx]
-        return {
-            "remote_start_at": data.get(start_time),
-            "remote_end_at": data.get(end_time)
-        }
-
-
-class VolvoTailgateSwitch(VolvoSwitchEntity):
-    def __init__(self, coordinator, idx, metaKey):
-        check_keys = ["tail_gate_open"]
-        super().__init__(coordinator, idx, metaKey, check_keys)
-
-    async def async_turn_on(self) -> None:
-        coordinator = self.coordinator.data[self.idx]
-        await coordinator.unlock_vehicle_trunk_only()
-        await coordinator.tail_gate_control_open()
-        await self._update_status(True)
-
-    async def async_turn_off(self) -> None:
-        await self.coordinator.data[self.idx].tail_gate_control_close()
-        await self._update_status(False)
-
-
-class VolvoSunroofSwitch(VolvoSwitchEntity):
-    def __init__(self, coordinator, idx, metaKey):
-        check_keys = ["sunroof_open"]
-        super().__init__(coordinator, idx, metaKey, check_keys)
-
-    async def async_turn_on(self) -> None:
-        await self.coordinator.data[self.idx].sunroof_control_open()
-        await self._update_status(True)
-
-    async def async_turn_off(self) -> None:
-        await self.coordinator.data[self.idx].sunroof_control_close()
+        await self.entity_description.turn_off_fn(self.coordinator, self.vehicle)
         await self._update_status(False)

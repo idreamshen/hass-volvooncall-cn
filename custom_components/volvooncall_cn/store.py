@@ -1,9 +1,9 @@
 
 import logging
-from typing import TypedDict, Unpack
+from typing import TypedDict
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
-from .volvooncall_cn import DOMAIN
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 STORE_VERSION = 1
@@ -28,7 +28,7 @@ class VolvoStore(Store[StoreData]):
         self.data = await self.async_load() or self.default_data
         return self.data
 
-    async def update(self, **kwargs: Unpack[StoreData]):
+    async def update(self, **kwargs: int):
         self.data = self.data or await self.load_create_data()
         for key, value in kwargs.items():
             if value is not None and key in StoreData.__annotations__:

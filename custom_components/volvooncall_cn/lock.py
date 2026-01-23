@@ -1,19 +1,55 @@
 from __future__ import annotations
+
 import asyncio
-import logging
-from homeassistant.components.lock import (
-    LockEntity,
-)
+from dataclasses import dataclass
+from typing import Awaitable, Callable
+
+from homeassistant.components.lock import LockEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.const import Platform
 
 from . import VolvoCoordinator, VolvoEntity
-from .volvooncall_cn import DOMAIN
 from .volvooncall_base import MAX_RETRIES
+from .volvooncall_cn import Vehicle
 
-_LOGGER = logging.getLogger(__name__)
+
+@dataclass(frozen=True, kw_only=True)
+class VolvoLockEntityDescription(EntityDescription):
+    is_locked_fn: Callable[[Vehicle], bool | None]
+    lock_fn: Callable[[Vehicle], Awaitable[None]]
+    unlock_fn: Callable[[Vehicle], Awaitable[None]]
+    available_fn: Callable[[Vehicle], bool] | None = None
+
+
+LOCK_DESCRIPTIONS: tuple[VolvoLockEntityDescription, ...] = (
+    VolvoLockEntityDescription(
+        key="car_lock",
+        is_locked_fn=lambda vehicle: vehicle.car_locked,
+        lock_fn=lambda vehicle: vehicle.lock_vehicle(),
+        unlock_fn=lambda vehicle: vehicle.unlock_vehicle(),
+    ),
+    VolvoLockEntityDescription(
+        key="window_lock",
+        is_locked_fn=lambda vehicle: _window_is_locked(vehicle),
+        lock_fn=lambda vehicle: vehicle.lock_window(),
+        unlock_fn=lambda vehicle: vehicle.unlock_window(),
+        available_fn=lambda vehicle: vehicle.isAaos,
+    ),
+)
+
+
+def _window_is_locked(vehicle: Vehicle) -> bool | None:
+    window_states = [
+        vehicle.front_left_window_open,
+        vehicle.front_right_window_open,
+        vehicle.rear_right_window_open,
+        vehicle.rear_left_window_open,
+    ]
+    if any(state is None for state in window_states):
+        return None
+    return not any(window_states)
 
 
 async def async_setup_entry(
@@ -21,82 +57,44 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Configure sensors from a config entry created in the integrations UI."""
-    coordinator: VolvoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: VolvoCoordinator = config_entry.runtime_data.coordinator
+    entities: list[VolvoLock] = []
 
-    entities = []
-    for idx, ent in enumerate(coordinator.data):
-        entities.append(VolvoSensor(coordinator, idx, "car_lock"))
-        if ent.get("isAaos"):
-            entities.append(VolvoWindowSensor(coordinator, idx, "window_lock"))
+    for vehicle in coordinator.data:
+        for description in LOCK_DESCRIPTIONS:
+            if description.available_fn and not description.available_fn(vehicle):
+                continue
+            entities.append(VolvoLock(coordinator, vehicle, description))
 
     async_add_entities(entities)
 
 
-class VolvoSensor(VolvoEntity, LockEntity):
-    """An entity using CoordinatorEntity.
+class VolvoLock(VolvoEntity, LockEntity):
+    entity_description: VolvoLockEntityDescription
 
-    The CoordinatorEntity class provides:
-      should_poll
-      async_update
-      async_added_to_hass
-      available
-    """
-
-    def __init__(self, coordinator, idx, metaMapKey):
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, idx, metaMapKey, Platform.LOCK)
+    def __init__(
+        self,
+        coordinator: VolvoCoordinator,
+        vehicle: Vehicle,
+        description: VolvoLockEntityDescription,
+    ) -> None:
+        super().__init__(coordinator, vehicle, description)
 
     @property
     def is_locked(self) -> bool | None:
-        """Handle updated data from the coordinator."""
-        return self.coordinator.data[self.idx].get("car_locked")
+        return self.entity_description.is_locked_fn(self.vehicle)
 
-    async def _update_status(self, is_locked):
+    async def _update_status(self, is_locked: bool) -> None:
         for _ in range(MAX_RETRIES):
             await asyncio.sleep(1)
-            await self.coordinator.async_refresh()
+            await self.coordinator.async_request_refresh()
             if self.is_locked == is_locked:
                 break
 
-    async def async_lock(self, **kwargs: Any) -> None:
-        """Lock the car."""
-        await self.coordinator.data[self.idx].lock_vehicle()
+    async def async_lock(self, **kwargs) -> None:
+        await self.entity_description.lock_fn(self.vehicle)
         await self._update_status(True)
 
-    async def async_unlock(self, **kwargs: Any) -> None:
-        """Unlock the car."""
-        await self.coordinator.data[self.idx].unlock_vehicle()
-        await self._update_status(False)
-
-
-class VolvoWindowSensor(VolvoEntity, LockEntity):
-    def __init__(self, coordinator, idx, metaMapKey):
-        super().__init__(coordinator, idx, metaMapKey, Platform.LOCK)
-
-    @property
-    def is_locked(self) -> bool:
-        data = self.coordinator.data[self.idx]
-        window_keys = ["front_left_window_open", "front_right_window_open",
-                       "rear_right_window_open", "rear_left_window_open"]
-        for window in window_keys:
-            is_open = data.get(window)
-            _LOGGER.debug("%s %s", window, is_open)
-            if is_open:
-                return False
-        return True
-
-    async def _update_status(self, is_locked):
-        for _ in range(MAX_RETRIES):
-            __ = await asyncio.sleep(5)
-            __ = await self.coordinator.async_refresh()
-            if self.is_locked == is_locked:
-                break
-
-    async def async_lock(self, **kwargs: Any) -> None:
-        await self.coordinator.data[self.idx].lock_window()
-        await self._update_status(True)
-
-    async def async_unlock(self, **kwargs: Any) -> None:
-        await self.coordinator.data[self.idx].unlock_window()
+    async def async_unlock(self, **kwargs) -> None:
+        await self.entity_description.unlock_fn(self.vehicle)
         await self._update_status(False)

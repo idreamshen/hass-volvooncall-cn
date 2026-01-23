@@ -1,14 +1,36 @@
-import logging
-from homeassistant.core import HomeAssistant
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Awaitable, Callable
+
+from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.components.button import ButtonEntity
-from homeassistant.const import Platform
 
 from . import VolvoCoordinator, VolvoEntity
-from .volvooncall_cn import DOMAIN
+from .volvooncall_cn import Vehicle
 
-_LOGGER = logging.getLogger(__name__)
+
+@dataclass(frozen=True, kw_only=True)
+class VolvoButtonEntityDescription(ButtonEntityDescription):
+    press_fn: Callable[[Vehicle], Awaitable[None]]
+
+
+BUTTON_DESCRIPTIONS: tuple[VolvoButtonEntityDescription, ...] = (
+    VolvoButtonEntityDescription(
+        key="flash_button",
+        press_fn=lambda vehicle: vehicle.flash(),
+    ),
+    VolvoButtonEntityDescription(
+        key="honk_flash_button",
+        press_fn=lambda vehicle: vehicle.honk_and_flash(),
+    ),
+    VolvoButtonEntityDescription(
+        key="honk_button",
+        press_fn=lambda vehicle: vehicle.honk(),
+    ),
+)
 
 
 async def async_setup_entry(
@@ -16,43 +38,26 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up button."""
-    coordinator: VolvoCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: VolvoCoordinator = config_entry.runtime_data.coordinator
+    entities: list[VolvoButton] = []
 
-    buttons = []
-    for idx, _ in enumerate(coordinator.data):
-        buttons.append(VolvoFlashButton(coordinator, idx, "flash_button"))
-        buttons.append(VolvoHonkFlashButton(coordinator, idx, "honk_flash_button"))
-        buttons.append(VolvoHonkButton(coordinator, idx, "honk_button"))
+    for vehicle in coordinator.data:
+        for description in BUTTON_DESCRIPTIONS:
+            entities.append(VolvoButton(coordinator, vehicle, description))
 
-    async_add_entities(buttons)
+    async_add_entities(entities)
 
 
-class VolvoFlashButton(VolvoEntity, ButtonEntity):
-    """Representation of a Volvo Cars button."""
+class VolvoButton(VolvoEntity, ButtonEntity):
+    entity_description: VolvoButtonEntityDescription
 
-    def __init__(self, coordinator, idx, metaMapKey):
-        super().__init__(coordinator, idx, metaMapKey, Platform.BUTTON)
-
-    async def async_press(self) -> None:
-        await self.coordinator.data[self.idx].flash()
-
-
-class VolvoHonkFlashButton(VolvoEntity, ButtonEntity):
-    """Representation of a Volvo Cars button."""
-
-    def __init__(self, coordinator, idx, metaMapKey):
-        super().__init__(coordinator, idx, metaMapKey, Platform.BUTTON)
+    def __init__(
+        self,
+        coordinator: VolvoCoordinator,
+        vehicle: Vehicle,
+        description: VolvoButtonEntityDescription,
+    ) -> None:
+        super().__init__(coordinator, vehicle, description)
 
     async def async_press(self) -> None:
-        await self.coordinator.data[self.idx].honk_and_flash()
-
-
-class VolvoHonkButton(VolvoEntity, ButtonEntity):
-    """Representation of a Volvo Cars button."""
-
-    def __init__(self, coordinator, idx, metaMapKey):
-        super().__init__(coordinator, idx, metaMapKey, Platform.BUTTON)
-
-    async def async_press(self) -> None:
-        await self.coordinator.data[self.idx].honk()
+        await self.entity_description.press_fn(self.vehicle)
